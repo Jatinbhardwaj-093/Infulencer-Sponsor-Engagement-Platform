@@ -1,0 +1,32 @@
+.grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    width: 60vw;
+    margin: auto;
+    margin-top: 4vh;
+    gap: 10px;
+}
+h1{
+    display: flex;
+    justify-content: center;
+    margin-top: 4vh;
+    font-weight: bolder;
+}
+
+
+.d-none{
+    display: none;
+    
+}
+
+.genre{
+    align-self: center;
+    margin-top: 30px;
+}
+
+
+.submit-btn{
+    display: flex;
+    justify-content: center;
+}

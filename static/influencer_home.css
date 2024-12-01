@@ -1,0 +1,111 @@
+.grid{
+    display: grid;
+    grid-template-columns: 300px auto;
+    grid-template-rows: 1fr 1fr;
+    margin: 4px;
+    grid-gap: 3px;
+    height: 88vh;
+
+}
+
+.profile{
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    font-size: 20px;
+    background-color: #f3f0f0;
+    border-radius: 13px;
+    font-weight: bold;
+    padding: 20px;
+}
+
+.pending_request{
+    padding-top: 30px;
+    background-color: #f3f0f0;
+    border-radius: 13px;
+
+}
+.sent_request{
+    padding-top: 30px;
+    background-color: #f3f0f0;
+    border-radius: 13px;
+}
+
+table{
+    background-color: #f3f0f0;
+}
+
+h3{
+    margin-left: 40px;
+    text-decoration: underline;
+}
+
+h2{
+    margin-left: 20px;
+    margin-bottom: 20px;
+    text-decoration: underline;
+}
+
+
+
+
+.profile-container {
+    position: relative;
+    width: 255px;
+    height: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #ddd; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid #6eff97;
+    border-radius: 10px;
+    box-shadow: 5px 5px 5px 5px #d4fecb;
+}
+
+.default-icon {
+    position: absolute;
+    font-size: 2rem;
+    color: #888;
+}
+
+.contain-table{
+    width: 95%;
+    margin: auto;
+    border-collapse: collapse;
+    /* margin: 25px 0; */
+    font-size: 0.9em;
+    min-width: 400px;
+    border-radius: 5px 5px 0 0;
+    overflow: hidden;
+    box-shadow: 0 0 20px #00000026;
+}
+
+.contain-table thead tr {
+    background-color: #c5ffce;
+    color: #000000;
+    text-align: left;
+    font-weight: bold;
+}
+
+.contain-table th, .contain-table td {
+    padding: 12px 15px;
+}
+
+.contain-table tbody tr {
+    border-bottom: 2px solid #dddddd;
+}
+
+
+tr:hover {background-color: #eeeeee;}

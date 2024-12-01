@@ -1,0 +1,52 @@
+{% extends 'layout_sponsor.html' %}
+
+
+{% block style  %}
+
+    <style>
+        .body{
+            background-color: #f0f8ff;
+            border: 2px solid #f0f8ff;
+            border-radius: 20px;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 50vh;
+            width: 20vw;
+            margin: auto;
+            gap: 10px;
+        }
+        h1{
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+        }
+    </style>
+{% endblock %}
+{% block title %}   
+    Payment
+{% endblock %}  
+
+{% block content %} 
+<form method="post">
+    <h1>Payment Portal</h1>
+    <div class="body">
+    <div class="mb-3">
+        <input class="form-control" type="text" placeholder="Enter Amount">
+    </div>
+    <div class="mb-3">
+        <input class="form-control" type="text" placeholder="Debit/Credit Card Number">
+    </div>
+    <div class="mb-3">
+        <input class="form-control" type="text" placeholder="Enter CVV">
+    </div>
+    <div class="mb-3">
+        <input type="hidden" name="payment" value="Paid">
+    <button class="btn btn-lg btn-primary">Make Payment</button>
+    </div>
+</div>
+</form>
+{% endblock %}

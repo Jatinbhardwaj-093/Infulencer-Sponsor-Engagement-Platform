@@ -1,0 +1,36 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block title %}   
+    Sponsor Campaigns
+    
+{% endblock %}
+
+{% block style  %}
+    <link rel="stylesheet" href="static/find_influencer.css">
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <form  method="post">
+        <input type="text" name="influencer_name_search" placeholder="Search influencer by name" class="search-input">
+        <button type="submit" value="submit" class="search-button">Search</button>
+    </form>
+</div>
+<div class="container">
+
+    {% for item in found_influencer %}
+    
+    <div class="card">
+        <img src="https://via.placeholder.com/250x150" alt="Profile Picture">
+        <div class="card-content">
+            <h2>{{item.username}}</h2>
+            <p class="email">{{item.email}}</p>
+            <p class="popularity">Popularity: {{item.popularity}}</p>
+            <p class="niche">Niche: {{item.genre}}</p>
+            <a class="btn btn-primary" href="{{ url_for('sponsor_influencer_requests', influencer_id = item.influencer_id) }}" type="submit" role="button">Request</a>
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

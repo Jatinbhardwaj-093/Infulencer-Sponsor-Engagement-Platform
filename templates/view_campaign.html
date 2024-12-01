@@ -1,0 +1,61 @@
+{% extends 'layout_admin.html' %}
+
+{% block title %}
+View Campaign
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="static/view_campaign.css">
+{% endblock %}
+
+{% block content %}
+
+
+
+<div class="container">
+    <h1>Campaign Overview</h1>
+
+    {% for sponsor,campaign in campaign %}
+        
+
+    <div class="section">
+        <span class="label">Sponsor Name:</span>
+        <span class="value">{{sponsor.username}}</span>
+    </div>
+    <div class="section">
+        <span class="label">Campaign Name:</span>
+        <span class="value">{{campaign.campaign_name}}</span>
+    </div>
+    <div class="section description">
+        <span class="label">Description:</span>
+        <p class="value">{{campaign.description}}</p>
+    </div>
+    
+    <div class="section">
+        <span class="label">Start Date:</span>
+        <span class="value">{{campaign.start_date}}</span>
+    </div>
+    <div class="section">
+        <span class="label">End Date:</span>
+        <span class="value">{{campaign.end_date}}</span>
+    </div>
+    <div class="section">
+        <span class="label">Visibility:</span>
+        <span class="value">{{campaign.visiblity}}</span>
+    </div>
+    {% if campaign.visiblity=='Private' %}
+        <div class="section">
+            <span class="label">Genre:</span>
+            <span class="value">{{campaign.finding_niche}}</span>
+        </div>
+    {% endif %}
+
+    <div class="section">
+        <span class="label">Goal:</span>
+        <span class="value">{{campaign.goals}}</span>
+    </div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}

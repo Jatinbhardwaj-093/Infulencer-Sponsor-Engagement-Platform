@@ -1,0 +1,91 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block title %}
+    Sponsor Home Page
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="static/sponsor_home.css">    
+{% endblock %}
+
+{% block content %}
+    <div class="grid">
+        <div class="influencer_request">
+            <h1>Sent Requests</h1>
+            <table class="contain-table">
+                <thead>
+                <tr>
+                    <th scope="col">Influencer</th>
+                    <th scope="col">Campaign</th>
+                    <th scope="col">Message</th>
+
+                    <th scope="col">Budget</th>
+                    <th scope="col">Offer</th>
+                    <th scope="col">Status</th>
+                </tr>
+                </thead>
+                {% for sponsor_request,campaign,influencer in sponsor_requests %}
+                    
+                <tbody>
+                    <tr>
+                        <th scope="row">{{influencer.username}}</th>
+                        <td>{{campaign.campaign_name}}</td>
+                        <td>{{sponsor_request.message}}</td>
+                        <td>{{campaign.budget}}</td>
+                        <td>{{sponsor_request.amount}}</td>
+                        {% if sponsor_request.sponsor_status=='Approved' %}
+                            <td style="color: #008000">{{sponsor_request.sponsor_status}}</td>
+                        {% elif sponsor_request.sponsor_status=='Rejected' %}
+                            <td style="color: #ff0000;">{{sponsor_request.sponsor_status}}</td>
+                        {% else %}
+                            <td>{{sponsor_request.sponsor_status}}</td>
+                        {% endif %}
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+
+        </div>
+        <div class="sent_request">
+            <h1>Received Requests</h1>
+            <table class="contain-table">
+                <thead>
+                <tr>
+                    <th scope="col">Influencer</th>
+                    <th scope="col">Campaign</th>
+                    <th scope="col">Message</th>
+                    <th scope="col">Budget</th>
+                    <th scope="col">Ask</th>
+                    <th scope="col">Action</th>
+                </tr>
+                </thead>
+                {% for influencer_request,campaign,influencer in influencer_requests %}
+                    
+                <tbody>
+                    <tr>
+                        <th scope="row">{{influencer.username}}</th>
+                        <td>{{campaign.campaign_name}}</td>
+                        <td>{{influencer_request.message}}</td>
+                        <td>{{campaign.budget}}</td>
+                        <td>{{influencer_request.amount}}</td>
+                        <td>
+                        {% if influencer_request.sponsor_call == 'Approved' %}
+                            <p style="color: #008000">Accepted</p>
+                        {% elif influencer_request.sponsor_call == 'Rejected' %}
+                            <p style="color: #ff0000;">Rejected</p>
+                        {% else %}
+                            <form method="post">
+                                <button style="background-color: #b0ffb0; border: none;" type="submit" name="sponsor_call" value="Approved">Accept</button>
+                                <button style="background-color: #ff5252; border: none; "type="submit" name="sponsor_call" value="Rejected">Reject</button>
+                                <input type="hidden" name="influencer_request_id" value="{{influencer_request.influencer_request_id}}">
+                            </form>
+                        {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
+

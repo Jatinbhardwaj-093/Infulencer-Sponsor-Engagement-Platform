@@ -1,0 +1,109 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block title %}   
+    Assigned Campaign
+{% endblock %}
+
+{% block style  %}
+    <link rel="stylesheet" href="static/sponsor_assigned_campaign.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="top">
+    <h1>Assigned Campaign</h1>  
+</div>
+
+<div>
+<table class="contain-table">
+    <thead>
+        <tr>
+            <th scope="col">Influencer</th>
+            <th scope="col">Campaign</th>
+            <th scope="col">Description</th>
+            <th scope="col">Completion Status</th>
+            <th scope="col">Validation</th>
+            <th scope="col">Payment</th>
+        </tr>
+    </thead>
+        {% for sponsor_request,campaign,influencer in sponsor_requests %}
+            
+        <tbody>
+            <tr>
+                <th scope="row">{{influencer.username}}</th>
+                <td>{{campaign.campaign_name}}</td>
+                <td>{{campaign.description}}</td>
+                {% if sponsor_request.status_complete_influencer == 'Submited' %}
+                    <td>{{sponsor_request.status_complete_influencer}}</td>
+                    {% if sponsor_request.status_complete_sponsor == 'Approved' %}
+                        <td>{{sponsor_request.status_complete_sponsor}}</td>
+                            {% if sponsor_request.payment_sponsor == 'Paid' %}
+                                <td>{{sponsor_request.payment_sponsor}}</td>
+                            {% else %}
+                                <td><a role="button" href="{{url_for('sponsor_payment',completed_campaign_id=sponsor_request.sponsor_request_id, whoes_request='sponsor')}}">Pay</a></td>
+                            {% endif %}
+                    {% elif sponsor_request.status_complete_sponsor == 'Rejected' %}
+                        <td>{{sponsor_request.status_complete_sponsor}}</td>
+                    {% else %}
+                        <form method="post">
+                        <td>
+                            <input type="hidden" name="completed_campaign_id" value="{{sponsor_request.sponsor_request_id}}">
+                            <input type="hidden" name="whoes_request" value="sponsor">
+                            <button name="sponsor_completion_approval" value="Approved"type="submit" style="border-radius: 15px; background-color: #d4ffd4;">Approve</button>
+                            <button name="sponsor_completion_approval" value="Rejected" type="submit" style="border-radius: 15px; background-color: #ff8989;">Reject</button>
+                            </td>
+                        </form>
+                    {% endif %}  
+                {% else %}
+                    <td><span style="font-weight: bold; margin-right: 5px;">{{sponsor_request.status_complete_influencer}}</span></td>
+                    
+                {% endif %}         
+            
+
+                
+                </td>
+            </tr>
+        </tbody>
+        {% endfor %}
+        {% for influencer_request,campaign,influencer in influencer_requests %}
+            
+        <tbody>
+            <tr>
+                <th scope="row">{{influencer.username}}</th>
+                <td>{{campaign.campaign_name}}</td>
+                <td>{{campaign.description}}</td>
+                {% if influencer_request.status_complete_influencer == 'Submited' %}
+                    <td>{{influencer_request.status_complete_influencer}}</td>
+                    {% if influencer_request.status_complete_sponsor == 'Approved' %}
+                        <td>{{influencer_request.status_complete_sponsor}}</td>
+                            {% if influencer_request.payment_sponsor == 'Paid' %}
+                                <td>{{influencer_request.payment_sponsor}}</td>
+                            {% else %}
+                                <td><a role="button" href="{{url_for('sponsor_payment',completed_campaign_id=influencer_request.influencer_request_id,whoes_request='influencer')}}">Pay</a></td>
+                            {% endif %}
+                    {% elif influencer_request.status_complete_sponsor == 'Rejected' %}
+                        <td>{{influencer_request.status_complete_sponsor}}</td>
+                    {% else %}
+                        <form method="post">
+                        <td>
+                            <input type="hidden" name="completed_campaign_id" value="{{influencer_request.influencer_request_id}}">
+                            <input type="hidden" name="whoes_request" value="influencer">
+                            <button  type="submit" name="sponsor_completion_approval" value="Approved" style="border-radius: 15px; background-color: #d4ffd4;">Approve</button>
+                            <button type="submit" name="sponsor_completion_approval" value="Rejected"  style="border-radius: 15px; background-color: #ff8989;">Reject</button>
+                            </td>
+                        </form>
+                    {% endif %}  
+            {% else %}
+                <td><span style="font-weight: bold; margin-right: 5px;">{{influencer_request.status_complete_influencer}}</span></td>
+                
+            {% endif %}      
+
+                
+                </td>
+            </tr>
+        </tbody>
+        {% endfor %}
+</table>
+
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 30px;
+}
+.heading {
+    flex: 1;
+    text-align: center;
+}
+.btn {
+    margin-left: auto;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 80vw;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    height: 360px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px #279aeb;
+    width: 250px;
+    overflow-y: auto;
+    text-align: start;
+    
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.card-content h2 {
+    color:  #279aeb;
+    text-align: center;
+}
+.card-content p {
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.card-content .description {
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    
+}
+

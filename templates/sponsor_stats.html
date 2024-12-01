@@ -1,0 +1,203 @@
+{% extends 'layout_admin.html' %}
+
+{% block title %}
+    Sponsor Stats    
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="static/stats.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="grid">
+    <div class="chart1 inner-content">
+        <canvas id="campaignChart"></canvas>
+    </div>
+    <div class="chart2 inner-content">
+        <canvas id ="flaged_sponsor"></canvas>
+    </div>
+    <div class="chart3 inner-content">
+        <canvas id="industryChart"></canvas>
+    </div>
+    <div class="info">
+        <h1>Sponsors Stats</h1>
+        <div class="information">
+            <p>Total Sponsors: {{sponsor[0]}}</p>
+            <p>Different Industry: {{sponsor[1]}}</p>
+            <p>Total Flagged: {{sponsor[2]}}</p>
+            <p>Ethical Sponsor: {{sponsor[3]}}</p>
+            <p>Ad requests by Sponsor: {{sponsor[4]}}</p>
+        </div>
+    </div>
+</div>
+
+
+
+<Script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+        // setup
+        
+        const data1 = {
+            labels: {{labels|safe}},
+            datasets: [
+                {
+                    label: 'Sponsor by Industry',
+                    data: {{data|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                    ],
+                    borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                    borderwidth: 1
+                }
+            ]
+        };
+
+        const data2 = {
+            labels: {{labels2|safe}},
+            datasets: [
+                {
+                    label: 'Campaign of Sponsrors',
+                    data: {{data2|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                hoverOffset: 4
+                }
+            ]
+        };
+        const data3 = {
+            labels: {{labels3|safe}},
+            datasets: [
+                {
+                    label: 'Campaign of Sponsrors',
+                    data: {{data3|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                hoverOffset: 4
+                }
+            ]
+        };
+
+        // config
+        const config = {
+            type: 'bar',
+            data: data1,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Sponsor by Industry',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    
+                }
+            },
+        };
+        const config2 = {
+            type: 'doughnut',
+            data: data2,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Campaign of Sponsrors',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    
+                }
+            },
+        };
+        const config3 = {
+            type: 'doughnut',
+            data: data3,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Sponsors by flagged condition',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    
+                }
+            },
+        };
+        
+        // rendering
+        const Industry = document.getElementById('industryChart').getContext('2d');
+        const IndustryChart = new Chart(Industry, config);
+        
+        const campaign_ctx = document.getElementById('campaignChart').getContext('2d');
+        const campaignChart = new Chart(campaign_ctx, config2);
+        
+        const flag_ctx = document.getElementById('flaged_sponsor').getContext('2d');
+        const flagChart = new Chart(flag_ctx, config3);
+
+        
+
+</script>
+{% endblock %}

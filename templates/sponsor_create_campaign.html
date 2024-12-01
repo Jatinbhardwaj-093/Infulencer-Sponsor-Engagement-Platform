@@ -1,0 +1,80 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block title %}
+    Create Campaign
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="static/sponsor_campaign_create.css">
+
+{% endblock %}
+
+{% block content %}
+<h1>Create Campaign</h1>
+<form method="post">
+    <div class="grid">
+    <div class="mb-3">
+        <label for="Name" class="form-label">Campaign Name</label>
+        <input type="text" class="form-control" id="Name" name='name' placeholder="Campaign Name" required>
+    </div>
+    <div class="mb-3">
+        <label for="Description" class="form-label">Description </label>
+        <input type="text" class="form-control" id="Description" name='description' placeholder="Type Short Description about Campaign" required>
+    </div>
+    <div class="mb-3">
+        <label for="start_date" class="form-label">Start Date of Campaign</label>
+        <input type="date" class="form-control" id="start_date" name='start_date' required>
+    </div>
+    <div class="mb-3">
+        <label for="end_date" class="form-label">End Date of Campaign</label>
+        <input type="date" class="form-control" id="end_date" name='end_date'required>
+    </div>
+    <div class="mb-3">
+        <label for="budget" class="form-label">Budget</label>
+        <input type="number" class="form-control" id="budget" name='budget' placeholder="Campaign Budget" required>
+    </div>
+    <div class="mb-3">
+        <label for="goals" class="form-label">Campaign Goals</label>
+        <input type="text" class="form-control" id="goals" name='goals'>
+    </div>
+
+    <div class="mb-3">
+        <label for="visiblity" class="form-label">Visiblity</label>
+        <select name="visiblity" id="visiblity" class="form-select" onchange="enableNiche(this)" required="">
+            <option value="Public">Public</option>
+            <option value="Private">Private</option>
+        </select>
+    </div>
+    
+
+    <div class="mb-3 genre">
+    <select id="genre" class="form-select d-none " name='genre' required>
+        <option >Select Niche you want to show your Campaign</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Commentarty">Commentarty</option>
+        <option value="Sports and Fitness">Sports and Fitness</option>
+        <option value="Educational">Educational</option>
+        <option value="Gaming">Gaming</option>
+        <option value="Vloging">Vloging</option>
+        <option value="Music">Music</option>
+    </select>
+    </div>
+</div>
+
+<div class="mb-3 button submit-btn">
+<button type="submit" class="btn btn-primary btn-lg btn-block" value="submit">Create</button>
+</div>
+
+</form>
+
+<script>
+    function enableNiche(answer) {
+        if(answer.value=='Private'){
+            document.getElementById("genre").classList.remove("d-none");
+        }
+        else{
+            document.getElementById("genre").classList.add("d-none");
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "layout_login.html" %}
+
+{% block style %}
+
+<link rel="stylesheet" href="static/style.css">
+{% endblock style %}
+
+{% block title %}Admin Login Page{% endblock title %}
+
+{% block content %}
+
+
+<h1>Admin Login Page</h1> 
+<div class="body">
+    
+<form method="post">
+    <div class="mb-3">
+        <label for="UserName" class="form-label">Admin Name</label>
+        <input type="text" name="name"  class="form-control" id="UserName" >
+    </div>
+    <div class="mb-3">
+        <label for="passaword" class="form-label">Password</label>
+        <input type="password" name="passaword" class="form-control" id="passaword">
+    </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+</div>
+{% endblock content %}

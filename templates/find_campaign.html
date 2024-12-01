@@ -1,0 +1,40 @@
+{% extends 'layout_influencer.html' %}
+
+{% block title %}   
+    Campaigns 
+{% endblock %}
+
+{% block style  %}
+    <link rel="stylesheet" href="static/find_campaign.css">
+{% endblock %}
+
+{% block content %}
+<div class="top">
+<h1 class="heading">Ongoing Campaigns</h1>
+</div>
+<div class="container">
+    {% for sponsor,Campaign in Campaigns %}
+    
+    <div class="card">
+        <div class="card-content">
+            <h2>{{Campaign.campaign_name}}</h2>
+            <p class="description">{{Campaign.description}}</p>
+            <p class="sponsor_name">Sponsor: {{sponsor.industry}}</p>
+            <p class="start_date">Start Date: {{Campaign.start_date}}</p>
+            <p class="end_date">End Date: {{Campaign.end_date}}</p>
+            <p class="budget">Budget: {{Campaign.budget}}</p>
+            <p class="visiblity">Visiblity: {{Campaign.visiblity}}</p>
+            {% for request in requested_campaign if request.campaign_id == Campaign.campaign_id %}
+
+            <p class ="btn" style="margin-left: 40px; margin-bottom: 10px; background-color: #e8e8e8; font-weight: bold;"> Requested</p>
+
+            {% else %}
+            <a class="btn" style="margin-left: 40px; margin-bottom: 10px; background-color: #a0ffac; font-weight: bold;" href="{{ url_for('influencer_request', campaign_id=Campaign.campaign_id) }}" type="submit" role="button">Request</a>
+            {%endfor%}
+            
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

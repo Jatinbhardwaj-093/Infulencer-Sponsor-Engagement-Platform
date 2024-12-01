@@ -1,0 +1,91 @@
+{% extends 'layout_admin.html' %}
+
+{% block title %}
+    Admin Home Page
+{% endblock %}  
+
+{% block style %}
+    <link rel="stylesheet" href="static/admin_home.css">
+{% endblock %}
+
+{% block content %}
+<div class="grid">
+<div class="influencer">
+    <h1>Active Influencer</h1>
+    <table class="contain-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Genre</th>
+            <th>Platform</th>
+            <th>Popularity</th>
+            <th></th>
+        </tr>
+        </thead>
+        {% for influencer in influencers %}
+            <tr>
+                <td>{{influencer.influencer_id}}</td>
+                <td>{{influencer.username}}</td>
+                <td>{{influencer.email}}</td>
+                <td>{{influencer.genre}}</td>
+                <td>{{influencer.platform}}</td>
+                <td>{{influencer.popularity}}</td>
+                <form method="post">
+                    <input type="hidden" name="influencer_id" value="{{influencer.influencer_id}}">
+                    <td>
+                        {% if influencer.flag == 'yes' %}
+                            <button type="submit" name="flag" value="no" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px; ">Flaged</button>
+                            <button type="submit" name="delete" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px;">Delete</button>
+                        {% else %}
+                            <button type="submit" name="flag" value="yes" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px;">Flag</button>
+                            <button type="submit" name="delete" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px; ">Delete</button>
+                        {% endif %}
+                    </td>
+                </form>
+            </tr>
+        {% endfor %}    
+    </table>
+</div>
+<div class="sponsor">
+    <h1>Active Sponsor</h1>
+    <table class="contain-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Industry</th>
+            <th></th>
+        </tr>
+        </thead>
+        {% for sponsor in sponsors %}
+            <tr>
+                <td>{{sponsor.sponsor_id}}</td>
+                <td>{{sponsor.username}}</td>
+                <td>{{sponsor.email}}</td>
+                <td>{{sponsor.industry}}</td>
+                <form method="post">
+                    <td>
+                        <input type="hidden" name="sponsor_id" value="{{sponsor.sponsor_id}}">
+                        {% if sponsor.flag == 'yes' %}
+                            <button type="submit" name="flag_sponsor" value="no" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px; ">Flagged</button>
+                            <button type="submit" name="delete_sponsor" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px;">Delete</button>
+                            
+                        {% else %}
+                            <button type="submit" name="flag_sponsor" value="yes" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px;">Flag</button>
+                            <button type="submit" name="delete_sponsor" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px; ">Delete</button>
+                        {% endif %}
+                        
+                    </td>
+                </form>
+                
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #0000001a;
+            margin-top: 20px;
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #uploadButton {
+            width: 120px;              
+            height: 120px;             
+            background-color: #d7d7d7; 
+            border-radius: 50%;        
+            display: inline-block;
+            justify-content: center;
+            color: #dbdbdb;         
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-align: center;
+}
+
+        #uploadButton img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .grid-item {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .grid-item label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .grid-item input, .grid-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form  method="POST" enctype="multipart/form-data">
+
+    <div class="container">
+        <div class="profile-header">
+            {% if profile =='none' %}
+                <input type="file" id="fileInput" name="pic" style="display: none;" onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
+                <label for="fileInput" id="uploadButton"></label>
+            {% else %}
+                <input type="file" id="fileInput" name="pic" style="display: none;" onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
+                <label for="fileInput" id="uploadButton">
+                    <img src="{{ url_for('static', filename='uploads/' ~ profile.name) }}" alt="Profile Image" class="profile-img" />
+                </label>
+            {% endif %}
+            <h1>Edit Profile</h1>
+        </div>
+        
+        <div class="grid-container">
+            <div class="grid-item">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name"value='{{founduser.username}}'>
+            </div>
+            <div class="grid-item">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="passaword" required>
+            </div>
+            <div class="grid-item">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{founduser.email}}" >
+            </div>
+            <div class="grid-item">
+                <label for="platform">Platform:</label>
+                <input type="text" id="platform" name="platform" value="{{founduser.platform}}">
+            </div>
+            <div class="grid-item">
+                <label for="popularity">Popularity:</label>
+                <input type="text" id="popularity" name="popularity" value="{{founduser.popularity}}">
+            </div>
+            <div class="grid-item">
+                <label for="genre">Genre:</label>
+                <select id="genre" name="genre">
+                    <option >Select your respective Genre</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Commentarty">Commentary</option>
+                    <option value="Sports and Fitness">Sports and Fitness</option>
+                    <option value="Educational">Educational</option>
+                    <option value="Gaming">Gaming</option><q></q>
+                    <option value="Vloging">Vloging</option>
+                    <option value="Music">Music</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="submit-btn">Save Changes</button>
+    </div>
+</form>
+</body>
+</html>

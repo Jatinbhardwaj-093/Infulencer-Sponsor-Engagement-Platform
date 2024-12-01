@@ -1,0 +1,40 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block title %}   
+    Sponsor Campaigns
+    
+{% endblock %}
+
+{% block style  %}
+    <link rel="stylesheet" href="static/sponsor_campaign.css">
+{% endblock %}
+
+{% block content %}
+<div class="top">
+<h1 class="heading">Your Campaigns</h1>
+<a class="btn btn-primary btn-lg" href="{{ url_for('sponsor_create_campaign' ) }}" role="button">Create</a>
+</div>
+<div class="container">
+    {% for Campaign in Campaigns %}
+        
+    <div class="card">
+        <div class="card-content">
+            {% if Campaign.flag == 'yes' %}
+                <p style="background-color: #ff8e8e; font-size: 25px; font-weight: bold; margin: 0px; text-align: center;">Flagged By Admin</p>
+            {% endif %}
+            <h2>{{Campaign.campaign_name}}</h2>
+            <p class="description">{{Campaign.description}}</p>
+            <p class="campaign_id">Campaign ID: {{Campaign.campaign_id}}</p>
+            <p class="start_date">Start Date: {{Campaign.start_date}}</p>
+            <p class="end_date">End Date: {{Campaign.end_date}}</p>
+            <p class="budget">Budget: {{Campaign.budget}}</p>
+            <p class="visiblity">Visiblity: {{Campaign.visiblity}}</p>
+            <form method="post">
+                <button class="btn" type="submit" name="campaign_id" value="{{Campaign.campaign_id}} " style="margin-left: 40px; margin-bottom: 10px; background-color: #a0eeff; font-weight: bold;">Edit Campaign</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

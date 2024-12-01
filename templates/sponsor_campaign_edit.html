@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 75px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .grid-item {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .grid-item label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .grid-item input, .grid-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form  method="POST">
+
+    <div class="container">
+        <h1 style="text-align: center;">Editting Campaign {{found_campaign.campaign_id}}</h1>
+        <div class="grid-container">
+            <div class="grid-item">
+                <label for="Name" class="form-label">Campaign Name</label>
+                <input type="text" class="form-control" id="Name" name='name' value="{{found_campaign.campaign_name}}">
+            </div>
+            <div class="grid-item">
+                <label for="Description" class="form-label">Description </label>
+                <input type="text" class="form-control" id="Description" name='description' value="{{found_campaign.description}}">
+            </div>
+            <div class="grid-item">
+                <label for="start_date" class="form-label">Start Date of Campaign</label>
+                <input type="date" class="form-control" id="start_date" name='start_date' value="{{found_campaign.start_date}}">
+            </div>
+            <div class="grid-item">
+                <label for="end_date" class="form-label">End Date of Campaign</label>
+                <input type="date" class="form-control" id="end_date" name='end_date' value="{{found_campaign.end_date}}">
+            </div>
+            <div class="grid-item">
+                <label for="budget" class="form-label">Budget</label>
+                <input type="number" class="form-control" id="budget" name='budget' value="{{found_campaign.budget}}">
+            </div>
+            <div class="grid-item">
+                <label for="goals" class="form-label">Campaign Goals</label>
+                <input type="text" class="form-control" id="goals" name='goals' value="{{found_campaign.goals}}">
+            </div>
+        
+        </div>
+        <button class="submit-btn">Save Changes</button>
+        </div>
+</form>
+</body>
+</html>

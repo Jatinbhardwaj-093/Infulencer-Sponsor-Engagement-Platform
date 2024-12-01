@@ -1,0 +1,36 @@
+{% extends 'layout_sponsor.html' %}
+
+{% block style %}
+
+    <link rel="stylesheet" href="static/sponsor_request.css">
+{% endblock %}
+
+{% block title %}
+    Sponsor Request
+{% endblock %}
+
+{% block content %}
+<h1>Sponsor Request</h1>
+<form method="post">
+    <div class="box">
+
+        <div class="mb-3">
+        <label  class="form-label" for="id">Provide Campaign Id</label>
+        <input class="form-control" id="id" name="campaign_id" type="number" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="Message">Message</label>
+        <input class="form-control" id="Message" name="message" type="text" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="Amount">Offering Amount</label>
+        <input class="form-control" id="Amount" name="offer" type="number" required>
+    </div>
+        <button class="btn btn-primary" type="submit">Request</button>
+    </div>
+
+
+</form>
+{% endblock %}

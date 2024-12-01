@@ -1,0 +1,207 @@
+{% extends 'layout_admin.html' %}
+
+{% block title %}
+    Influencer Stats    
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="static/stats.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="grid">
+    <div class="chart1 inner-content">
+        <canvas id="platformChart"></canvas>
+    </div>
+    <div class="chart2 inner-content">
+        <canvas id ="flag"></canvas>
+    </div>
+    <div class="chart3 inner-content">
+        <canvas id="nicheChart"></canvas>
+    </div>
+    <div class="info">
+        <h1>Influencer Stats</h1>
+        <div class="information">
+            <p>Total Influencers: {{influencer[0]}}</p>
+            <p>Different Niche: {{influencer[1]}}</p>
+            <p>Different Platform: {{influencer[2]}}</p>
+            <p>Total Flagged: {{influencer[3]}}</p>
+            <p>Ethical Influencer: {{influencer[4]}}</p>
+            <p>Ad requests by Influencer: {{influencer[5]}}</p>
+        </div>
+    </div>
+</div>
+
+
+
+<Script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+        // setup
+        
+        const data1 = {
+            labels: {{labels|safe}},
+            datasets: [
+                {
+                    label: 'Influencer by Niche',
+                    data: {{data|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                    ],
+                    borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                    borderwidth: 1
+                }
+            ]
+        };
+
+        const data2 = {
+            labels: {{labels2|safe}},
+            datasets: [
+                {
+                    label: 'Influencer by Platform',
+                    data: {{data2|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                hoverOffset: 4
+                }
+            ]
+        };
+        const data3 = {
+            labels: {{labels3|safe}},
+            datasets: [
+                {
+                    label: 'Influencer by Platform',
+                    data: {{data3|safe}},
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                    ],
+                hoverOffset: 4
+                }
+            ]
+        };
+
+        // config
+        const config = {
+            type: 'bar',
+            data: data1,
+            options: {
+
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Influencer by Niche',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    
+                }
+            },
+        };
+        const config2 = {
+            type: 'doughnut',
+            data: data2,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Influencer by Platform',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    
+                }
+            },
+        };
+        const config3 = {
+            type: 'doughnut',
+            data: data3,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Influencer by Flag condition',
+                        font: {
+                            size: 20
+                            
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    },
+                    
+                }
+            },
+        };
+
+    
+        
+        // rendering
+        const niche_ctx = document.getElementById('nicheChart').getContext('2d');
+        const nicheChart = new Chart(niche_ctx, config);
+        
+        const platform_ctx = document.getElementById('platformChart').getContext('2d');
+        const platformChart = new Chart(platform_ctx, config2);
+        
+        const flag_ctx = document.getElementById('flag').getContext('2d');
+        const flagChart = new Chart(flag_ctx, config3);
+
+        
+
+</script>
+{% endblock %}

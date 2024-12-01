@@ -1,0 +1,94 @@
+{% extends 'layout_Influencer.html' %}
+
+{% block title %}   
+    Active Campaign
+{% endblock %}
+
+{% block style  %}
+    <link rel="stylesheet" href="static/influencer_active_campaign.css">
+{% endblock %}
+
+{% block content %}
+
+<div class="top">
+    <h1>Active Campaign</h1>  
+</div>
+
+<div>
+<table class="contain-table">
+    <thead>
+        <tr>
+            <th scope="col">Sponsor</th>
+            <th scope="col">Campaign</th>
+            <th scope="col">Description</th>
+            <th scope="col">Completion Status</th>
+            <th scope="col">Sponsor Validation</th>
+            <th scope="col">Payment</th>
+        </tr>
+    </thead>
+        {% for sponsor_request,campaign,sponsor in sponsor_requests %}
+            
+        <tbody>
+            <tr>
+                <th scope="row">{{sponsor.industry}}</th>
+                <td>{{campaign.campaign_name}}</td>
+                <td>{{campaign.description}}</td>
+                {% if sponsor_request.status_complete_influencer == 'Submited' %}
+                    <td><span style="font-weight: bold; color: green;">{{sponsor_request.status_complete_influencer}}</span></td>
+                    {% if sponsor_request.status_complete_sponsor == 'Approved' %}
+                        <td>{{sponsor_request.status_complete_sponsor}}</td>
+                        <td>{{sponsor_request.payment_sponsor}}</td>
+                        
+                    {% else %}
+                        <td>{{sponsor_request.status_complete_sponsor}}</td>
+                    {% endif %}           
+                {%else %}
+                    <td><span style="font-weight: bold; margin-right: 5px ; ">{{sponsor_request.status_complete_influencer}}</span>
+                    <form method="post">
+                        <input type="hidden" name="completed_campaign_id" value="{{sponsor_request.sponsor_request_id}}">
+                        <input type="hidden" name="whoes_request" value="sponsor">
+                        
+                        <button type="submit" name="project_submission" value="Submited"style="background-color: #d4ffd4 ; border-radius: 10px ;">Submit</button></td>
+                    </form>
+                {% endif %}
+
+                
+                </td>
+            </tr>
+        </tbody>
+        {% endfor %}
+        {% for influencer_request,campaign,sponsor in influencer_requests %}
+            
+        <tbody>
+            <tr>
+                <th scope="row">{{sponsor.industry}}</th>
+                <td>{{campaign.campaign_name}}</td>
+                <td>{{campaign.description}}</td>
+                {% if influencer_request.status_complete_influencer == 'Submited' %}
+                    <td><span style="font-weight: bold; margin-right: 5px ;color: green;">{{influencer_request.status_complete_influencer}}</span></td>
+                    {% if influencer_request.status_complete_sponsor == 'Approved' %}
+                        <td>{{influencer_request.status_complete_sponsor}}</td>
+                        <td>{{influencer_request.payment_sponsor}}</td>
+                    {% else %}
+                        <td>{{influencer_request.status_complete_sponsor}}</td>
+                    {% endif %}           
+                {%else %}
+                    <td><span style="font-weight: bold; margin-right: 5px;">{{influencer_request.status_complete_influencer}}</span>
+                    <form  method="post">
+                        <button  type="submit" name="project_submission" value="Submited" style="background-color: #d4ffd4 ; border-radius: 10px ;">Submit</button>
+                        <input type="hidden" name="whoes_request" value="influencer" >
+                        <input type="hidden" name="completed_campaign_id" value="{{influencer_request.influencer_request_id}}">
+                        
+                    </form>
+                    </td>
+                {% endif %}
+
+                
+                </td>
+            </tr>
+        </tbody>
+        {% endfor %}
+</table>
+
+</div>
+{% endblock %}
