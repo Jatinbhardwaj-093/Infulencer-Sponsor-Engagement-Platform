@@ -1,18 +1,450 @@
-.body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50vh;
-    margin: 0;
+/* Main CSS file for the Influencer Engagement Platform */
+
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #f6c23e;
+    --success-color: #1cc88a;
+    --danger-color: #e74a3b;
+    --dark-color: #5a5c69;
+    --light-color: #f8f9fc;
+    --border-color: #e3e6f0;
 }
 
+/* General styles */
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--light-color);
+    color: #333;
+    line-height: 1.6;
+}
 
-h1 {
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #224abe;
+}
+
+/* Card styles */
+.card {
+    border: none;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.25rem;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 20vh;
-    margin: 0;
-    margin-bottom: 20px;
+    justify-content: space-between;
+}
+
+.card-title {
+    margin-bottom: 0;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+/* Button styles */
+.btn {
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.35rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2653d4;
+    border-color: #244cdc;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.btn-success:hover {
+    background-color: #17a673;
+    border-color: #169b6b;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+    background-color: #e02d1b;
+    border-color: #d52a1a;
+}
+
+.btn-warning {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-warning:hover {
+    background-color: #f4b619;
+    border-color: #f4b30d;
+}
+
+/* Form styles */
+.form-control {
+    border-radius: 0.35rem;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    height: auto;
+}
+
+.form-control:focus {
+    border-color: #bac8f3;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+/* Table styles */
+.table {
+    color: #333;
+    margin-bottom: 0;
+    border-color: var(--border-color);
+}
+
+.table thead th {
+    background-color: #f8f9fc;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--dark-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(242, 242, 242, 0.6);
+}
+
+/* Navigation styles */
+.navbar {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    padding: 0.75rem 1rem;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.nav-link {
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    z-index: 1;
+    padding: 0;
+}
+
+.sidebar-heading {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+}
+
+.sidebar-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 0 1rem;
+}
+
+.nav-item .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.nav-item .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item .nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-item .nav-link i {
+    margin-right: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Dashboard stats */
+.stat-card {
+    border-left: 0.25rem solid;
+    border-radius: 0.35rem;
+}
+
+.stat-primary {
+    border-left-color: var(--primary-color);
+}
+
+.stat-success {
+    border-left-color: var(--success-color);
+}
+
+.stat-warning {
+    border-left-color: var(--secondary-color);
+}
+
+.stat-danger {
+    border-left-color: var(--danger-color);
+}
+
+.stat-card .stat-title {
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: #4e73df;
+    letter-spacing: 0.1em;
+}
+
+.stat-card .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.stat-card .stat-icon {
+    color: #dddfeb;
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+/* Profile styles */
+.profile-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.profile-details {
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* Campaign card styles */
+.campaign-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    height: 100%;
+}
+
+.campaign-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+}
+
+.campaign-img {
+    height: 180px;
+    object-fit: cover;
+}
+
+.campaign-details {
+    padding: 1.5rem;
+}
+
+.campaign-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.campaign-meta {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.campaign-description {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+/* Status badges */
+.badge {
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 0.35rem;
+}
+
+.badge-primary {
+    background-color: var(--primary-color);
+}
+
+.badge-success {
+    background-color: var(--success-color);
+}
+
+.badge-warning {
+    background-color: var(--secondary-color);
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: var(--danger-color);
+}
+
+/* Utility classes */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-warning {
+    color: var(--secondary-color) !important;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.bg-warning {
+    background-color: var(--secondary-color) !important;
+}
+
+.bg-danger {
+    background-color: var(--danger-color) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-color) !important;
+}
+
+.border-success {
+    border-color: var(--success-color) !important;
+}
+
+.border-warning {
+    border-color: var(--secondary-color) !important;
+}
+
+.border-danger {
+    border-color: var(--danger-color) !important;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        width: 100%;
+    }
+    
+    .profile-img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .campaign-img {
+        height: 150px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Dark mode styles - for future implementation */
+.dark-mode {
+    background-color: #212529;
+    color: #f8f9fc;
+}
+
+.dark-mode .card,
+.dark-mode .form-control,
+.dark-mode .table,
+.dark-mode .profile-details {
+    background-color: #343a40;
+    border-color: #495057;
+    color: #f8f9fc;
+}
+
+.dark-mode .card-header,
+.dark-mode .table thead th {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #f8f9fc;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
 }
 
