@@ -861,20 +861,59 @@
         <!-- Campaign Performance -->
         <div class="col-md-6 mb-4">
             <div class="card shadow h-100">
-                <div class="card-header py-3">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-success">Campaign Performance</h6>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-success active"
+                            data-period="monthly">Monthly</button>
+                        <button type="button" class="btn btn-outline-success" data-period="quarterly">Quarterly</button>
+                        <button type="button" class="btn btn-outline-success" data-period="yearly">Yearly</button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="mb-4" style="height: 250px;">
                         <canvas id="campaignPerformanceChart"></canvas>
                     </div>
+                    <div class="row mt-3 mb-3">
+                        <div class="col-md-3 text-center">
+                            <div class="metric-card">
+                                <h6 class="text-xs font-weight-bold text-success text-uppercase mb-1">Completion Rate
+                                </h6>
+                                <h4 class="font-weight-bold text-gray-800">85%</h4>
+                                <span class="text-xs text-success"><i class="fas fa-arrow-up me-1"></i>3.5%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-card">
+                                <h6 class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg Duration</h6>
+                                <h4 class="font-weight-bold text-gray-800">25 days</h4>
+                                <span class="text-xs text-danger"><i class="fas fa-arrow-down me-1"></i>1.2 days</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-card">
+                                <h6 class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Influencers/Campaign</h6>
+                                <h4 class="font-weight-bold text-gray-800">4.8</h4>
+                                <span class="text-xs text-success"><i class="fas fa-arrow-up me-1"></i>0.7</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-card">
+                                <h6 class="text-xs font-weight-bold text-warning text-uppercase mb-1">Renewal Rate</h6>
+                                <h4 class="font-weight-bold text-gray-800">67%</h4>
+                                <span class="text-xs text-success"><i class="fas fa-arrow-up me-1"></i>5%</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive">
-                        <table class="table table-sm table-borderless">
+                        <table class="table table-sm table-hover">
                             <thead>
                                 <tr class="bg-light">
                                     <th>Campaign Type</th>
                                     <th>Avg. ROI</th>
-                                    <th>Engagement Rate</th>
+                                    <th>Engagement</th>
+                                    <th>Conversion</th>
                                     <th>Performance</th>
                                 </tr>
                             </thead>
@@ -883,6 +922,7 @@
                                     <td>Social Media</td>
                                     <td><span class="font-weight-bold">342%</span></td>
                                     <td>9.4%</td>
+                                    <td>3.2%</td>
                                     <td>
                                         <div class="progress" style="height: 6px;">
                                             <div class="progress-bar bg-success" role="progressbar" style="width: 87%"
@@ -894,6 +934,7 @@
                                     <td>Product Review</td>
                                     <td><span class="font-weight-bold">285%</span></td>
                                     <td>7.2%</td>
+                                    <td>5.1%</td>
                                     <td>
                                         <div class="progress" style="height: 6px;">
                                             <div class="progress-bar bg-info" role="progressbar" style="width: 76%"
@@ -905,6 +946,7 @@
                                     <td>Brand Ambassador</td>
                                     <td><span class="font-weight-bold">410%</span></td>
                                     <td>12.8%</td>
+                                    <td>4.7%</td>
                                     <td>
                                         <div class="progress" style="height: 6px;">
                                             <div class="progress-bar bg-primary" role="progressbar" style="width: 92%"
@@ -912,8 +954,24 @@
                                         </div>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>Event Promotion</td>
+                                    <td><span class="font-weight-bold">275%</span></td>
+                                    <td>8.5%</td>
+                                    <td>6.3%</td>
+                                    <td>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 74%"
+                                                aria-valuenow="74" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('admin.campaign_stats') }}" class="btn btn-sm btn-outline-success">View
+                            Complete Analytics</a>
                     </div>
                 </div>
             </div>
@@ -2200,23 +2258,40 @@ The Influencer Platform Team</textarea>
             });
         }
 
-        // Campaign Performance Chart - Improved spider chart
+        // Campaign Performance Chart - Enhanced with period switching
         const performanceCtx = document.getElementById('campaignPerformanceChart');
         if (performanceCtx) {
-            const campaignPerformanceChart = new Chart(performanceCtx.getContext('2d'), {
+            // Data for different time periods
+            const campaignData = {
+                monthly: {
+                    labels: ['Reach', 'Engagement', 'Conversion', 'ROI', 'Brand Awareness'],
+                    data: [80, 65, 45, 70, 85]
+                },
+                quarterly: {
+                    labels: ['Reach', 'Engagement', 'Conversion', 'ROI', 'Brand Awareness'],
+                    data: [85, 70, 50, 75, 80]
+                },
+                yearly: {
+                    labels: ['Reach', 'Engagement', 'Conversion', 'ROI', 'Brand Awareness'],
+                    data: [90, 75, 60, 80, 90]
+                }
+            };
+
+            // Initialize with monthly data
+            let campaignPerformanceChart = new Chart(performanceCtx.getContext('2d'), {
                 type: 'radar',
                 data: {
-                    labels: ['Reach', 'Engagement', 'Conversion', 'ROI', 'Brand Awareness'],
+                    labels: campaignData.monthly.labels,
                     datasets: [{
-                        label: 'Average Performance',
-                        data: [80, 65, 45, 70, 85],
-                        backgroundColor: 'rgba(153, 102, 255, 0.4)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
+                        label: 'Performance Metrics',
+                        data: campaignData.monthly.data,
+                        backgroundColor: 'rgba(40, 167, 69, 0.4)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
                         borderWidth: 2,
-                        pointBackgroundColor: 'rgba(153, 102, 255, 1)',
+                        pointBackgroundColor: 'rgba(40, 167, 69, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(153, 102, 255, 1)'
+                        pointHoverBorderColor: 'rgba(40, 167, 69, 1)'
                     }]
                 },
                 options: {
@@ -2242,10 +2317,81 @@ The Influencer Platform Team</textarea>
                     },
                     plugins: {
                         legend: {
-                            position: 'top',
+                            display: false,
                         },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
                     },
                 }
+            });
+
+            // Handle period switching
+            document.querySelectorAll('[data-period]').forEach(button => {
+                button.addEventListener('click', function () {
+                    // Update active button
+                    document.querySelectorAll('[data-period]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+
+                    // Get selected period
+                    const period = this.getAttribute('data-period');
+
+                    // Update chart data
+                    campaignPerformanceChart.data.datasets[0].data = campaignData[period].data;
+                    campaignPerformanceChart.update();
+
+                    // Update metrics for different periods
+                    const metrics = {
+                        monthly: {
+                            completion: '85%', completionTrend: '+3.5%',
+                            duration: '25 days', durationTrend: '-1.2 days',
+                            influencers: '4.8', influencersTrend: '+0.7',
+                            renewal: '67%', renewalTrend: '+5%'
+                        },
+                        quarterly: {
+                            completion: '88%', completionTrend: '+5.2%',
+                            duration: '28 days', durationTrend: '+0.5 days',
+                            influencers: '5.3', influencersTrend: '+1.2',
+                            renewal: '72%', renewalTrend: '+8%'
+                        },
+                        yearly: {
+                            completion: '91%', completionTrend: '+7.8%',
+                            duration: '30 days', durationTrend: '+2.1 days',
+                            influencers: '6.2', influencersTrend: '+1.5',
+                            renewal: '78%', renewalTrend: '+11%'
+                        }
+                    };
+
+                    // Update metric values
+                    document.querySelector('.metric-card:nth-child(1) h4').innerText = metrics[period].completion;
+                    document.querySelector('.metric-card:nth-child(1) span').innerHTML =
+                        `<i class="fas fa-arrow-up me-1"></i>${metrics[period].completionTrend}`;
+
+                    document.querySelector('.metric-card:nth-child(2) h4').innerText = metrics[period].duration;
+                    if (period === 'monthly') {
+                        document.querySelector('.metric-card:nth-child(2) span').innerHTML =
+                            `<i class="fas fa-arrow-down me-1"></i>${metrics[period].durationTrend}`;
+                        document.querySelector('.metric-card:nth-child(2) span').className = 'text-xs text-danger';
+                    } else {
+                        document.querySelector('.metric-card:nth-child(2) span').innerHTML =
+                            `<i class="fas fa-arrow-up me-1"></i>${metrics[period].durationTrend}`;
+                        document.querySelector('.metric-card:nth-child(2) span').className = 'text-xs text-success';
+                    }
+
+                    document.querySelector('.metric-card:nth-child(3) h4').innerText = metrics[period].influencers;
+                    document.querySelector('.metric-card:nth-child(3) span').innerHTML =
+                        `<i class="fas fa-arrow-up me-1"></i>${metrics[period].influencersTrend}`;
+
+                    document.querySelector('.metric-card:nth-child(4) h4').innerText = metrics[period].renewal;
+                    document.querySelector('.metric-card:nth-child(4) span').innerHTML =
+                        `<i class="fas fa-arrow-up me-1"></i>${metrics[period].renewalTrend}`;
+                });
             });
         }
 

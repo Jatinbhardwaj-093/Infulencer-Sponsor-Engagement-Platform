@@ -426,6 +426,7 @@ def add_more_dummy_data():
     all_influencers = Influencer.query.all()
     
     # Create some influencer requests for campaigns
+    print("\nCreating influencer requests for campaigns...")
     for idx, campaign in enumerate(new_campaigns_db):
         # Pick two influencers to make requests for this campaign
         for i in range(2):
@@ -438,8 +439,15 @@ def add_more_dummy_data():
             ).first()
             
             if not existing_request:
+                # Get actual campaign ID
+                campaign_id = campaign.campaign_id
+                if not campaign_id:
+                    print(f"Warning: Campaign {campaign.campaign_name} has no ID, skipping")
+                    continue
+                    
+                print(f"Creating influencer request: Campaign ID={campaign_id}, Campaign={campaign.campaign_name}, Influencer={influencer.username}")
                 request = InfluencerAdRequest(
-                    campaign_id=campaign.campaign_id,
+                    campaign_id=campaign_id,
                     influencer_id=influencer.influencer_id,
                     sponsor_id=campaign.sponsor_id,
                     message=f"I'm interested in promoting your {campaign.campaign_name} campaign and believe my audience would respond well to it.",
@@ -449,6 +457,7 @@ def add_more_dummy_data():
                 db.session.add(request)
     
     # Create some sponsor requests to influencers
+    print("\nCreating sponsor requests to influencers...")
     for idx, campaign in enumerate(new_campaigns_db):
         # Pick an influencer to send a request to
         influencer = all_influencers[(idx + len(all_influencers) - 1) % len(all_influencers)]
@@ -460,8 +469,15 @@ def add_more_dummy_data():
         ).first()
         
         if not existing_request:
+            # Get actual campaign ID
+            campaign_id = campaign.campaign_id
+            if not campaign_id:
+                print(f"Warning: Campaign {campaign.campaign_name} has no ID, skipping")
+                continue
+                
+            print(f"Creating sponsor request: Campaign ID={campaign_id}, Campaign={campaign.campaign_name}, Influencer={influencer.username}")
             request = SponsorRequest(
-                campaign_id=campaign.campaign_id,
+                campaign_id=campaign_id,
                 influencer_id=influencer.influencer_id,
                 sponsor_id=campaign.sponsor_id,
                 message=f"Your content aligns perfectly with our {campaign.campaign_name} campaign. We'd love to have you on board!",

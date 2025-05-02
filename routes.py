@@ -108,27 +108,12 @@ def home():
         
         for campaign in campaigns:
             sponsor = Sponsor.query.get(campaign.sponsor_id)
-            # Count influencers for this campaign - trying different possible values for the column
+            # Count all influencer requests for this campaign instead of filtering by status
             try:
-                # Try multiple possible values for influencer_call that could be in your database
-                possible_approve_values = ['Approve', 'Approved', 'approve', 'approved']
-                
-                # Start with 0 count
-                influencer_count = 0
-                
-                # Try each possible value
-                for approve_value in possible_approve_values:
-                    count = db.session.query(db.func.count(SponsorRequest.sponsor_request_id)).filter(
-                        SponsorRequest.campaign_id == campaign.campaign_id,
-                        SponsorRequest.influencer_call == approve_value
-                    ).scalar() or 0
-                    
-                    # Add to total count
-                    influencer_count += count
-                    
-                    # If we found results, no need to try other values
-                    if count > 0:
-                        break
+                # Just count total sponsor requests for this campaign without filtering by influencer_call
+                influencer_count = db.session.query(db.func.count(SponsorRequest.sponsor_request_id)).filter(
+                    SponsorRequest.campaign_id == campaign.campaign_id
+                ).scalar() or 0
                 
             except Exception as e:
                 # Fallback to zero if there's an error with the query
@@ -512,7 +497,8 @@ def login():
             flash('Your account has been flagged by administrators', 'danger')
             return redirect(url_for("influencer.login"))
             
-        if found_user.check_password(password):
+        # Use bcrypt to check password instead of the model's check_password method
+        if bcrypt.check_password_hash(found_user.password, password):
             session['influencer_name'] = name
             found_user.last_login = datetime.utcnow()
             db.session.commit()
@@ -528,23 +514,17 @@ def login():
 def register():
     """Influencer registration page"""
     if request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get('name')  # Using 'name' as in the form
         email = request.form.get('email')
         password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        age = request.form.get('age')
         genre = request.form.get('genre')
         platform = request.form.get('platform')
-        follower_count = request.form.get('follower_count')
-        short_description = request.form.get('short_description')
+        follower_count = request.form.get('follower')  # Using 'follower' as in the form
+        short_description = request.form.get('bio')  # Using 'bio' as in the form
         
         # Validation
-        if not all([username, email, password, confirm_password, age, genre, platform, follower_count]):
+        if not all([username, email, password, genre, platform, follower_count]):
             flash('Please fill all required fields', 'danger')
-            return redirect(url_for('influencer.register'))
-            
-        if password != confirm_password:
-            flash('Passwords do not match', 'danger')
             return redirect(url_for('influencer.register'))
             
         # Check if user already exists
@@ -564,12 +544,11 @@ def register():
             username=username,
             email=email,
             password=hashed_password,
-            age=age,
             genre=genre,
             platform=platform,
-            follower_count=follower_count,
-            short_description=short_description,
-            flag='no',  # Default not flagged
+            popularity=follower_count,  # Map to the correct field name in the model
+            bio=short_description,      # Using 'bio' as in the model
+            flag='no',                  # Default not flagged
             created_at=datetime.utcnow()
         )
         
@@ -590,6 +569,122 @@ def register():
         return redirect(url_for('influencer.login'))
         
     return render_template('influencer_register.html')
+
+@influencer_bp.route("/home")
+def home():
+    """Influencer home page"""
+    if 'influencer_name' not in session:
+        flash('Please login to access your dashboard.', 'warning')
+        return redirect(url_for('influencer.login'))
+        
+    username = session['influencer_name']
+    founduser = Influencer.query.filter_by(username=username).first()
+    
+    # Get active campaigns that might be relevant to this influencer
+    active_campaigns = Campaign.query.filter_by(status='Active').limit(5).all()
+    
+    # Get profile image
+    profile = Img.query.filter_by(influencer_id=founduser.influencer_id).first()
+    profile = profile if profile else 'none'
+    
+    # Get influencer's requests with campaign and sponsor details
+    influencer_request_data = db.session.query(
+        InfluencerAdRequest, Campaign, Sponsor
+    ).join(
+        Campaign, InfluencerAdRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Sponsor, InfluencerAdRequest.sponsor_id == Sponsor.sponsor_id
+    ).filter(
+        InfluencerAdRequest.influencer_id == founduser.influencer_id
+    ).all()
+    
+    # Get sponsor requests with campaign and sponsor details
+    sponsor_request_data = db.session.query(
+        SponsorRequest, Campaign, Sponsor
+    ).join(
+        Campaign, SponsorRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Sponsor, SponsorRequest.sponsor_id == Sponsor.sponsor_id
+    ).filter(
+        SponsorRequest.influencer_id == founduser.influencer_id
+    ).all()
+    
+    return render_template(
+        'influencer_home.html', 
+        founduser=founduser, 
+        active_campaigns=active_campaigns,
+        profile=profile,
+        influencer_requests=influencer_request_data,
+        sponsor_requests=sponsor_request_data
+    )
+
+@influencer_bp.route("/profile/edit", methods=['GET', 'POST'])
+def profile_edit():
+    """Edit influencer profile page"""
+    if 'influencer_name' not in session:
+        flash('Please login to access your profile.', 'warning')
+        return redirect(url_for('influencer.login'))
+        
+    username = session['influencer_name']
+    influencer = Influencer.query.filter_by(username=username).first()
+    
+    # Get current profile image
+    profile_image = Img.query.filter_by(influencer_id=influencer.influencer_id).first()
+    
+    if request.method == 'POST':
+        # Update profile information
+        influencer.username = request.form.get('username', influencer.username)
+        influencer.email = request.form.get('email', influencer.email)
+        influencer.genre = request.form.get('genre', influencer.genre)
+        influencer.platform = request.form.get('platform', influencer.platform)
+        influencer.popularity = request.form.get('follower_count', influencer.popularity)
+        influencer.bio = request.form.get('bio', influencer.bio)
+        
+        # Handle profile image update if provided
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(config.UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                
+                # If already has profile image, update it
+                if profile_image:
+                    profile_image.name = filename
+                    profile_image.filepath = file_path
+                    profile_image.mimetype = file.mimetype
+                else:
+                    # Create new profile image record
+                    new_image = Img(
+                        name=filename,
+                        filepath=file_path,
+                        mimetype=file.mimetype,
+                        influencer_id=influencer.influencer_id
+                    )
+                    db.session.add(new_image)
+        
+        # Handle password update if provided
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if new_password and confirm_password:
+            if new_password == confirm_password:
+                influencer.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+                flash('Password updated successfully!', 'success')
+            else:
+                flash('Passwords do not match.', 'danger')
+                return redirect(url_for('influencer.profile_edit'))
+        
+        # Save all changes
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('influencer.home'))
+    
+    return render_template(
+        'influencer_profile_edit.html', 
+        influencer=influencer,
+        profile_image=profile_image
+    )
 
 # Sponsor routes
 @sponsor_bp.route("/login", methods=['GET', 'POST'])
@@ -615,12 +710,18 @@ def login():
 def register():
     """Sponsor registration page"""
     if request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get('name')  # Changed from 'username' to 'name' to match the form
         email = request.form.get('email')
         password = request.form.get('password')
         company_name = request.form.get('company_name')
         industry = request.form.get('industry')
+        website = request.form.get('website')  # Added website field from the form
         
+        # Validation
+        if not all([username, email, password, company_name, industry]):
+            flash('Please fill all required fields', 'danger')
+            return redirect(url_for('sponsor.register'))
+            
         # Check if username or email already exists
         existing_user = Sponsor.query.filter((Sponsor.username == username) | (Sponsor.email == email)).first()
         if existing_user:
@@ -637,7 +738,9 @@ def register():
             password=hashed_pw,
             company_name=company_name,
             industry=industry,
-            flag='no'  # Default to not flagged
+            website=website,  # Added website field
+            flag='no',  # Default to not flagged
+            created_at=datetime.utcnow()  # Added creation timestamp
         )
         
         db.session.add(new_sponsor)
