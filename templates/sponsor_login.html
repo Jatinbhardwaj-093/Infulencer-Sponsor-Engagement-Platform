@@ -2,34 +2,68 @@
 
 {% block style %}
 
-<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
 {% endblock style %}
 
-{% block title %}Sponsor Login Page{% endblock title %}
+{% block title %}Sponsor Login - InfluConnect{% endblock title %}
 
 {% block content %}
-
-
-<h1>Sponsor Login Page</h1>
-<div class="body">
-<form method="POST">
-    <div class="mb-3">
-        <label for="UserName" class="form-label">User Name</label>
-        <input type="text" class="form-control" id="UserName" name="name">
+<div class="auth-header">
+    <div class="logo">
+        <i class="fas fa-briefcase fa-3x"></i>
     </div>
-    <div class="mb-3">
-        <label for="Password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="Password" name="passaword">
-    </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-        <br><br>
-            <a href="{{url_for('sponsor_register')}}">First time visit open a new account here</a>
-            <br>
-            <div class="d-grid gap-2 col-4 mx-auto">
-                <a class="btn btn-primary" href="{{url_for('sponsor_register')}}" role="button" >Register</a>
-            </div>
-</form>
+    <h2>Sponsor Login</h2>
+    <p>Sign in to manage your brand campaigns</p>
 </div>
 
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-user"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Username" name="name" required>
+        </div>
+    </div>
 
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-lock"></i>
+            </span>
+            <input type="password" class="form-control" placeholder="Password" name="password" required>
+        </div>
+    </div>
+
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe">
+        <label class="form-check-label" for="rememberMe">Remember me</label>
+        <a href="#" class="float-end">Forgot password?</a>
+    </div>
+
+    <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+    </div>
+</form>
+
+<div class="divider">
+    <span>OR</span>
+</div>
+
+<div class="social-login">
+    <a href="#" class="social-btn google">
+        <i class="fab fa-google"></i>
+    </a>
+    <a href="#" class="social-btn facebook">
+        <i class="fab fa-facebook-f"></i>
+    </a>
+    <a href="#" class="social-btn twitter">
+        <i class="fab fa-twitter"></i>
+    </a>
+</div>
+
+<div class="auth-footer">
+    <p>Don't have an account? <a href="{{ url_for('sponsor.register') }}">Sign Up</a></p>
+</div>
 {% endblock content %}

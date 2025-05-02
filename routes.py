@@ -1,14 +1,13 @@
 from flask import Blueprint, render_template, url_for, redirect, flash, request, session, Response
-from models import Admin, Influencer, Sponsor, Campaign, InfluencerAdRequest, SponsorRequest, Img, db
-# Import bcrypt directly from flask_bcrypt instead of models
-from flask_bcrypt import Bcrypt
+from models import Admin, Influencer, Sponsor, Campaign, InfluencerAdRequest, SponsorRequest, Img, Notification
+# Import db directly from db.py instead of models
+from db import db, bcrypt
+import sqlalchemy as sa
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 import config
-
-# Initialize bcrypt
-bcrypt = Bcrypt()
+from functools import wraps
 
 # Create blueprints for different sections of the application
 main_bp = Blueprint('main', __name__)
@@ -23,106 +22,271 @@ def register_routes(app):
     app.register_blueprint(influencer_bp)
     app.register_blueprint(sponsor_bp)
 
+# Admin login required decorator
+def admin_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            flash('Please login to access the admin dashboard.', 'warning')
+            return redirect(url_for('admin.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Main routes
-@main_bp.route("/")
+@main_bp.route('/')
 def index():
-    """Landing page for the platform"""
     return render_template('index.html')
 
-# Authentication routes
-@main_bp.route("/admin/logout")
+@main_bp.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out successfully!', 'success')
+    return redirect(url_for('main.index'))
+
+# Admin routes
+@admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        admin = Admin.query.filter_by(username=username).first()
+        
+        if admin and admin.check_password(password):
+            session['admin_id'] = admin.admin_id
+            session['admin_name'] = admin.username  # Store both for compatibility
+            flash('Login successful!', 'success')
+            return redirect(url_for('admin.home'))
+        else:
+            flash('Login failed. Please check your credentials.', 'danger')
+    
+    return render_template('admin_login.html')
+
+@admin_bp.route('/home')
+@admin_login_required
+def home():
+    # Get view parameter for different sections of admin panel
+    view = request.args.get('view', 'dashboard')
+    
+    # Load common data needed across views
+    influencers = Influencer.query.all()
+    sponsors = Sponsor.query.all()
+    campaigns = Campaign.query.all()
+    active_campaign_count = Campaign.query.filter_by(status='Active').count()
+    
+    # Handle notification count safely - to prevent ROLLBACK errors
+    notification_count = 0
+    try:
+        # Try to run the notification query in a separate transaction
+        from sqlalchemy.orm import Session
+        from db import engine
+
+        # Create a new session just for this query to isolate it
+        with Session(engine) as separate_session:
+            # Get notification count
+            notification_count = separate_session.query(sa.func.count()).select_from(Notification).filter(
+                Notification.user_id == session.get('admin_id'),
+                Notification.is_read == False
+            ).scalar() or 0
+    except Exception as e:
+        # Log the error but continue with the page load
+        print(f"Error getting notification count: {e}")
+        notification_count = 0
+    
+    # Handle different views based on query parameter
+    if view == 'users':
+        return render_template('admin_home.html', 
+                                influencers=influencers, 
+                                sponsors=sponsors, 
+                                view=view,
+                                notification_count=notification_count,
+                                title="User Management")
+
+    elif view == 'campaigns':
+        # Format campaign data for the campaign management view
+        formatted_campaigns = []
+        
+        for campaign in campaigns:
+            sponsor = Sponsor.query.get(campaign.sponsor_id)
+            # Count influencers for this campaign - trying different possible values for the column
+            try:
+                # Try multiple possible values for influencer_call that could be in your database
+                possible_approve_values = ['Approve', 'Approved', 'approve', 'approved']
+                
+                # Start with 0 count
+                influencer_count = 0
+                
+                # Try each possible value
+                for approve_value in possible_approve_values:
+                    count = db.session.query(db.func.count(SponsorRequest.sponsor_request_id)).filter(
+                        SponsorRequest.campaign_id == campaign.campaign_id,
+                        SponsorRequest.influencer_call == approve_value
+                    ).scalar() or 0
+                    
+                    # Add to total count
+                    influencer_count += count
+                    
+                    # If we found results, no need to try other values
+                    if count > 0:
+                        break
+                
+            except Exception as e:
+                # Fallback to zero if there's an error with the query
+                print(f"Error counting influencers for campaign {campaign.campaign_id}: {e}")
+                influencer_count = 0
+            
+            formatted_campaigns.append({
+                'campaign_id': campaign.campaign_id,
+                'title': campaign.campaign_name,
+                'sponsor_id': campaign.sponsor_id,
+                'sponsor_username': sponsor.username if sponsor else 'Unknown',
+                'start_date': campaign.start_date,
+                'end_date': campaign.end_date,
+                'budget': campaign.budget,
+                'influencer_count': influencer_count,
+                'status': campaign.status
+            })
+            
+        return render_template('admin_home.html', 
+                               influencers=influencers, 
+                               sponsors=sponsors, 
+                               campaigns=formatted_campaigns,
+                               active_campaign_count=active_campaign_count,
+                               notification_count=notification_count,
+                               view=view,
+                               title="Campaign Management")
+
+    elif view == 'reports':
+        # Get analytics data
+        total_influencers = len(influencers)
+        total_sponsors = len(sponsors)
+        total_campaigns = len(campaigns)
+        
+        return render_template('admin_home.html', 
+                                influencers=influencers, 
+                                sponsors=sponsors,
+                                campaigns=campaigns,
+                                total_influencers=total_influencers,
+                                total_sponsors=total_sponsors,
+                                total_campaigns=total_campaigns,
+                                active_campaign_count=active_campaign_count,
+                                notification_count=notification_count,
+                                view=view,
+                                title="Analytics & Reports")
+
+    elif view == 'settings':
+        return render_template('admin_home.html', 
+                                view=view,
+                                notification_count=notification_count,
+                                title="Platform Settings")
+    
+    # Default dashboard view
+    admin_count = Admin.query.count()
+    sponsor_count = len(sponsors)
+    influencer_count = len(influencers)
+    total_earnings = 0  # This would be calculated from actual data
+    
+    return render_template('admin_home.html', 
+                          influencers=influencers, 
+                          sponsors=sponsors,
+                          campaigns=campaigns,
+                          active_campaign_count=active_campaign_count,
+                          admin_count=admin_count,
+                          sponsor_count=sponsor_count,
+                          influencer_count=influencer_count,
+                          total_earnings=total_earnings,
+                          notification_count=notification_count,
+                          view='dashboard',
+                          title="Dashboard Overview")
+
+@admin_bp.route('/actions', methods=['POST'])
+@admin_login_required
+def admin_actions():
+    # Flag an influencer
+    if 'flag' in request.form and 'influencer_id' in request.form:
+        influencer_id = request.form.get('influencer_id')
+        flag_value = request.form.get('flag')
+        
+        influencer = Influencer.query.get(influencer_id)
+        if influencer:
+            influencer.flag = flag_value
+            db.session.commit()
+            flash(f'Influencer {influencer.username} has been {"flagged" if flag_value=="yes" else "unflagged"}.', 'success')
+    
+    # Delete an influencer
+    elif 'delete' in request.form and 'influencer_id' in request.form:
+        influencer_id = request.form.get('influencer_id')
+        influencer = Influencer.query.get(influencer_id)
+        
+        if influencer:
+            db.session.delete(influencer)
+            db.session.commit()
+            flash(f'Influencer {influencer.username} has been deleted.', 'success')
+    
+    # Flag a sponsor
+    elif 'flag_sponsor' in request.form and 'sponsor_id' in request.form:
+        sponsor_id = request.form.get('sponsor_id')
+        flag_value = request.form.get('flag_sponsor')
+        
+        sponsor = Sponsor.query.get(sponsor_id)
+        if sponsor:
+            sponsor.flag = flag_value
+            db.session.commit()
+            flash(f'Sponsor {sponsor.username} has been {"flagged" if flag_value=="yes" else "unflagged"}.', 'success')
+    
+    # Delete a sponsor
+    elif 'delete_sponsor' in request.form and 'sponsor_id' in request.form:
+        sponsor_id = request.form.get('sponsor_id')
+        sponsor = Sponsor.query.get(sponsor_id)
+        
+        if sponsor:
+            db.session.delete(sponsor)
+            db.session.commit()
+            flash(f'Sponsor {sponsor.username} has been deleted.', 'success')
+    
+    # Campaign management actions
+    elif 'campaign_action' in request.form and 'campaign_id' in request.form:
+        campaign_id = request.form.get('campaign_id')
+        action = request.form.get('campaign_action')
+        
+        campaign = Campaign.query.get(campaign_id)
+        if campaign:
+            if action == 'approve':
+                campaign.status = 'active'
+                flash(f'Campaign "{campaign.campaign_name}" has been approved.', 'success')
+            elif action == 'pause':
+                campaign.status = 'paused'
+                flash(f'Campaign "{campaign.campaign_name}" has been paused.', 'success')
+            elif action == 'complete':
+                campaign.status = 'completed'
+                flash(f'Campaign "{campaign.campaign_name}" has been marked as completed.', 'success')
+            elif action == 'delete':
+                db.session.delete(campaign)
+                flash(f'Campaign "{campaign.campaign_name}" has been deleted.', 'success')
+            elif action == 'flag':
+                campaign.flag = 'yes'
+                flash(f'Campaign "{campaign.campaign_name}" has been flagged.', 'success')
+            elif action == 'unflag':
+                campaign.flag = 'no'
+                flash(f'Campaign "{campaign.campaign_name}" has been unflagged.', 'success')
+                
+            db.session.commit()
+    
+    # Redirect back to the same view
+    view = request.args.get('view', 'dashboard')
+    return redirect(url_for('admin.home', view=view))
+
+@admin_bp.route("/logout")
 def admin_logout():
+    session.pop('admin_id', None)
     session.pop('admin_name', None)
     flash('Successfully logged out', 'success')
     return redirect(url_for("main.index"))
 
-@main_bp.route("/influencer/logout")
-def influencer_logout():
-    session.pop('influencer_name', None)
-    flash('Successfully logged out', 'success')
-    return redirect(url_for("main.index"))
-
-@main_bp.route("/sponsor/logout")
-def sponsor_logout():
-    session.pop('sponsor_name', None)
-    flash('Successfully logged out', 'success')
-    return redirect(url_for("main.index"))
-
-# Admin routes
-@admin_bp.route("/login", methods=['GET', 'POST'])
-def login():
-    """Admin login page"""
-    if request.method == 'POST':
-        name = request.form['name']
-        password = request.form['password']
-        found_user = Admin.query.filter_by(username=name).first()
-        
-        if not found_user:
-            flash('User does not exist', 'danger')
-            return redirect(url_for("admin.login"))
-        
-        if found_user.check_password(password):
-            session['admin_name'] = name
-            flash('Login successful', 'success')
-            return redirect(url_for("admin.home"))
-        else:
-            flash('Incorrect password', 'danger')
-            return redirect(url_for("admin.login"))
-    
-    return render_template('admin_login.html')
-
-@admin_bp.route("/home", methods=['GET', 'POST'])
-def home():
-    """Admin dashboard to manage influencers and sponsors"""
-    if 'admin_name' not in session:
-        flash('Please login first', 'warning')
-        return redirect(url_for('admin.login'))
-        
-    if request.method == 'POST':    
-        if 'flag' in request.form:
-            influencer_id = request.form['influencer_id']
-            flag = request.form['flag']
-            user = Influencer.query.filter_by(influencer_id=influencer_id).first()
-            user.flag = flag
-            db.session.commit()
-            flash('Influencer status updated', 'success')
-            
-        elif 'delete' in request.form:
-            influencer_id = request.form['influencer_id']
-            user = Influencer.query.filter_by(influencer_id=influencer_id).first()
-            db.session.delete(user)
-            db.session.commit()
-            flash('Influencer removed', 'success')
-            
-        elif 'flag_sponsor' in request.form:
-            sponsor_id = request.form['sponsor_id']
-            flag = request.form['flag_sponsor']
-            user = Sponsor.query.filter_by(sponsor_id=sponsor_id).first()
-            user.flag = flag
-            db.session.commit()
-            flash('Sponsor status updated', 'success')
-            
-        elif 'delete_sponsor' in request.form:
-            sponsor_id = request.form['sponsor_id']
-            user = Sponsor.query.filter_by(sponsor_id=sponsor_id).first()
-            db.session.delete(user)
-            db.session.commit()
-            flash('Sponsor removed', 'success')
-            
-        return redirect(url_for("admin.home"))
-    
-    influencers = Influencer.query.all()
-    sponsors = Sponsor.query.all()
-    
-    return render_template('admin_home.html', influencers=influencers, sponsors=sponsors)
-
 @admin_bp.route("/influencer/stats")
+@admin_login_required
 def influencer_stats():
     """Statistical data about influencers"""
-    if 'admin_name' not in session:
-        flash('Please login first', 'warning')
-        return redirect(url_for('admin.login'))
-        
     # Query the database to get the count of each genre
     niche_results = db.session.query(
         Influencer.genre, 
@@ -130,8 +294,8 @@ def influencer_stats():
     ).group_by(Influencer.genre).all()
     
     niche_count_list = [(genre, count) for genre, count in niche_results]
-    labels = [row[0] for genre, count in niche_results]
-    data = [row[1] for genre, count in niche_results]
+    labels = [genre for genre, count in niche_results]
+    data = [count for genre, count in niche_results]
     
     # Query the database to get the count of each platform
     platform_result = db.session.query(
@@ -140,8 +304,8 @@ def influencer_stats():
     ).group_by(Influencer.platform).all()
     
     platform_count_list = [(platform, count) for platform, count in platform_result]
-    labels2 = [row[0] for platform, count in platform_result]
-    data2 = [row[1] for platform, count in platform_result]
+    labels2 = [platform for platform, count in platform_result]
+    data2 = [count for platform, count in platform_result]
     
     # Query by flagged condition
     results = db.session.query(
@@ -150,8 +314,9 @@ def influencer_stats():
     ).all()
     
     flag_count_list = [('yes', results[0][0]), ('no', results[0][1])]
-    labels3 = [row[0] for flag, count in flag_count_list]
-    data3 = [row[1] for flag, count in flag_count_list]
+
+    labels3 = ['yes', 'no']
+    data3 = [results[0][0], results[0][1]]
     
     # Information of influencer
     influencer_count = db.session.query(db.func.count(Influencer.influencer_id)).scalar()
@@ -188,12 +353,9 @@ def influencer_stats():
     )
 
 @admin_bp.route("/sponsor/stats")
+@admin_login_required
 def sponsor_stats():
     """Statistical data about sponsors"""
-    if 'admin_name' not in session:
-        flash('Please login first', 'warning')
-        return redirect(url_for('admin.login'))
-        
     # Query for count of campaigns per industry
     results = db.session.query(
         Sponsor.industry, 
@@ -201,8 +363,8 @@ def sponsor_stats():
     ).group_by(Sponsor.industry).all()
     
     industry_count_list = [(industry, count) for industry, count in results]
-    labels = [row[0] for industry, count in results]
-    data = [row[1] for industry, count in results]
+    labels = [industry for industry, count in results]
+    data = [count for industry, count in results]
     
     # Query for count of campaigns per user
     results = db.session.query(
@@ -218,8 +380,8 @@ def sponsor_stats():
     ).all()
     
     sponsor_campaign_list = [(sponsor_id, sponsor_name, count) for sponsor_id, sponsor_name, count in results]
-    labels2 = [row[1] for sponsor_id, sponsor_name, count in results]
-    data2 = [row[2] for sponsor_id, sponsor_name, count in results]
+    labels2 = [sponsor_name for sponsor_id, sponsor_name, count in results]
+    data2 = [count for sponsor_id, sponsor_name, count in results]
     
     # Query by sponsor flagged condition
     results = db.session.query(
@@ -228,8 +390,8 @@ def sponsor_stats():
     ).all()
     
     flag_count_list = [('yes', results[0][0]), ('no', results[0][1])]
-    labels3 = [row[0] for flag, count in results]
-    data3 = [row[1] for flag, count in results]
+    labels3 = ['yes', 'no']
+    data3 = [results[0][0], results[0][1]]
     
     # Information of sponsor
     sponsor_count = db.session.query(db.func.count(Sponsor.sponsor_id)).scalar()
@@ -262,12 +424,9 @@ def sponsor_stats():
     )
 
 @admin_bp.route("/campaign/stats", methods=['GET', 'POST'])
+@admin_login_required
 def campaign_stats():
     """Campaign statistics and management"""
-    if 'admin_name' not in session:
-        flash('Please login first', 'warning')
-        return redirect(url_for('admin.login'))
-        
     if request.method == 'POST':
         if 'flag' in request.form:
             campaign_id = request.form['campaign_id']
@@ -288,8 +447,8 @@ def campaign_stats():
     ).group_by(Campaign.visibility).all()
     
     campaign_count_list = [(campaign_type, count) for campaign_type, count in results]
-    labels = [row[0] for campaign_type, count in results]
-    data = [row[1] for campaign_type, count in results]
+    labels = [campaign_type for campaign_type, count in results]
+    data = [count for campaign_type, count in results]
 
     # Niche of campaign when campaign is private
     results = db.session.query(
@@ -298,8 +457,8 @@ def campaign_stats():
     ).filter(Campaign.visibility == 'Private').group_by(Campaign.finding_niche).all()
     
     niche_campaign_list = [(niche, count) for niche, count in results]
-    labels2 = [row[0] for niche, count in results]
-    data2 = [row[1] for niche, count in results]
+    labels2 = [niche for niche, count in results]
+    data2 = [count for niche, count in results]
     
     # Campaign count per sponsor
     results = db.session.query(
@@ -315,8 +474,8 @@ def campaign_stats():
     ).all()
     
     sponsor_campaign_list = [(sponsor_id, sponsor_name, count) for sponsor_id, sponsor_name, count in results]
-    labels3 = [row[1] for sponsor_id, sponsor_name, count in results]
-    data3 = [row[2] for sponsor_id, sponsor_name, count in results]
+    labels3 = [sponsor_name for sponsor_id, sponsor_name, count in results]
+    data3 = [count for sponsor_id, sponsor_name, count in results]
     
     return render_template(
         'campaign_stats.html',
@@ -335,9 +494,6 @@ def view_campaign():
     campaign_id = int(request.args.get('campaign_id'))
     campaigns = db.session.query(Sponsor, Campaign).join(Campaign).filter(Campaign.campaign_id == campaign_id).all()
     return render_template('view_campaign.html', campaign=campaigns)
-
-# Add the remaining influencer and sponsor routes similarly
-# This is just a small portion of the refactored code
 
 # Influencer routes
 @influencer_bp.route("/login", methods=['GET', 'POST'])
@@ -372,139 +528,140 @@ def login():
 def register():
     """Influencer registration page"""
     if request.method == 'POST':
-        username = request.form['name']
-        password = request.form['passaword']
-        genre = request.form['genre']
-        email = request.form['email']
-        popularity = request.form['follower']
-        platform = request.form['platform']
-        bio = request.form.get('bio', '')
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        age = request.form.get('age')
+        genre = request.form.get('genre')
+        platform = request.form.get('platform')
+        follower_count = request.form.get('follower_count')
+        short_description = request.form.get('short_description')
         
-        # Check if username already exists
+        # Validation
+        if not all([username, email, password, confirm_password, age, genre, platform, follower_count]):
+            flash('Please fill all required fields', 'danger')
+            return redirect(url_for('influencer.register'))
+            
+        if password != confirm_password:
+            flash('Passwords do not match', 'danger')
+            return redirect(url_for('influencer.register'))
+            
+        # Check if user already exists
         existing_user = Influencer.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists', 'danger')
             return redirect(url_for('influencer.register'))
-        
-        # Check if email already exists
+            
         existing_email = Influencer.query.filter_by(email=email).first()
         if existing_email:
-            flash('Email already in use', 'danger')
+            flash('Email already registered', 'danger')
             return redirect(url_for('influencer.register'))
         
         # Create new influencer
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         new_influencer = Influencer(
             username=username,
-            password='',  # Will be set with set_password
-            genre=genre,
             email=email,
-            popularity=popularity,
+            password=hashed_password,
+            age=age,
+            genre=genre,
             platform=platform,
-            bio=bio
+            follower_count=follower_count,
+            short_description=short_description,
+            flag='no',  # Default not flagged
+            created_at=datetime.utcnow()
         )
         
-        # Set password hash
-        new_influencer.set_password(password)
+        # Handle profile image if uploaded
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(config.UPLOAD_FOLDER, filename)
+                file.save(file_path)
+                new_influencer.profile_image = filename
         
-        # Add to database
+        # Save influencer to database
         db.session.add(new_influencer)
         db.session.commit()
         
-        flash('Registration successful! You can now login.', 'success')
+        flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('influencer.login'))
-    
+        
     return render_template('influencer_register.html')
 
-# More routes to be added here
-# For brevity, I'm not including all routes
+# Sponsor routes
+@sponsor_bp.route("/login", methods=['GET', 'POST'])
+def login():
+    """Sponsor login page"""
+    if request.method == 'POST':
+        username = request.form.get('name')
+        password = request.form.get('password')
+        
+        sponsor = Sponsor.query.filter_by(username=username).first()
+        
+        if sponsor and bcrypt.check_password_hash(sponsor.password, password):
+            session['sponsor_id'] = sponsor.sponsor_id
+            session['sponsor_username'] = sponsor.username
+            flash(f'Welcome back, {sponsor.username}!', 'success')
+            return redirect(url_for('sponsor.home'))
+        else:
+            flash('Login failed! Please check your username and password.', 'danger')
+    
+    return render_template('sponsor_login.html')
 
 @sponsor_bp.route("/register", methods=['GET', 'POST'])
 def register():
     """Sponsor registration page"""
     if request.method == 'POST':
-        username = request.form['name']
-        password = request.form['passaword']
-        industry = request.form['industry']
-        company_name = request.form.get('company_name', '')
-        website = request.form.get('website', '')
-        email = request.form['email']
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        company_name = request.form.get('company_name')
+        industry = request.form.get('industry')
         
-        # Check if username already exists
-        existing_user = Sponsor.query.filter_by(username=username).first()
+        # Check if username or email already exists
+        existing_user = Sponsor.query.filter((Sponsor.username == username) | (Sponsor.email == email)).first()
         if existing_user:
-            flash('Username already exists', 'danger')
+            flash('Username or email already exists!', 'danger')
             return redirect(url_for('sponsor.register'))
         
-        # Check if email already exists
-        existing_email = Sponsor.query.filter_by(email=email).first()
-        if existing_email:
-            flash('Email already in use', 'danger')
-            return redirect(url_for('sponsor.register'))
+        # Hash password
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
         
         # Create new sponsor
         new_sponsor = Sponsor(
             username=username,
-            password='',  # Will be set with set_password
-            industry=industry,
+            email=email,
+            password=hashed_pw,
             company_name=company_name,
-            website=website,
-            email=email
+            industry=industry,
+            flag='no'  # Default to not flagged
         )
         
-        # Set password hash
-        new_sponsor.set_password(password)
-        
-        # Add to database
         db.session.add(new_sponsor)
         db.session.commit()
         
-        flash('Registration successful! You can now login.', 'success')
+        flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('sponsor.login'))
-    
-    return render_template('sponsor_register.html')
-
-@sponsor_bp.route("/login", methods=['GET', 'POST'])
-def login():
-    """Sponsor login page"""
-    if request.method == 'POST':
-        name = request.form['name']
-        password = request.form['passaword']
-        found_user = Sponsor.query.filter_by(username=name).first()
         
-        if not found_user:
-            flash('User does not exist', 'danger')
-            return redirect(url_for("sponsor.login"))
-            
-        if found_user.flag == 'yes':
-            flash('Your account has been flagged by administrators', 'danger')
-            return redirect(url_for("sponsor.login"))
-            
-        if found_user.check_password(password):
-            session['sponsor_name'] = name
-            found_user.last_login = datetime.utcnow()
-            db.session.commit()
-            flash('Login successful', 'success')
-            return redirect(url_for("sponsor.home"))
-        else:
-            flash('Incorrect password', 'danger')
-            return redirect(url_for("sponsor.login"))
-            
-    return render_template('sponsor_login.html')
+    return render_template('sponsor_register.html')
 
 @sponsor_bp.route("/home")
 def home():
-    """Sponsor home page/dashboard"""
-    if 'sponsor_name' not in session:
-        flash('Please login first', 'warning')
+    """Sponsor home page"""
+    if 'sponsor_id' not in session:
+        flash('Please login to access your dashboard.', 'warning')
         return redirect(url_for('sponsor.login'))
-    
-    # Get current sponsor
-    sponsor = Sponsor.query.filter_by(username=session['sponsor_name']).first()
-    
-    # Get campaigns created by this sponsor
-    campaigns = Campaign.query.filter_by(sponsor_id=sponsor.sponsor_id).all()
+        
+    sponsor_id = session['sponsor_id']
+    sponsor = Sponsor.query.get(sponsor_id)
+    campaigns = Campaign.query.filter_by(sponsor_id=sponsor_id).all()
     
     return render_template('sponsor_home.html', sponsor=sponsor, campaigns=campaigns)
+
+# More routes for influencer and sponsor management would be placed here
 
 # Function to check if file upload is allowed
 def allowed_file(filename):

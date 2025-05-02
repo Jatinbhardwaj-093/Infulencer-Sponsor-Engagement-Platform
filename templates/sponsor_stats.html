@@ -1,203 +1,596 @@
-{% extends 'layout_admin.html' %}
+{% extends "layout_sponsor.html" %}
 
-{% block title %}
-    Sponsor Stats    
-{% endblock %}
-
-{% block style %}
-<link rel="stylesheet" href="static/stats.css">
-{% endblock %}
+{% block title %}Sponsor Statistics{% endblock %}
 
 {% block content %}
+<div class="container-fluid px-4 py-4">
+    <h1 class="mt-2 mb-4">Performance Analytics</h1>
 
-<div class="grid">
-    <div class="chart1 inner-content">
-        <canvas id="campaignChart"></canvas>
+    <!-- Overview Stats Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Campaigns
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaigns }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Engaged Influencers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ engaged_influencers }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg Engagement</div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">8.4%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 84%"
+                                            aria-valuenow="84" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Campaign Budget
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_budget }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart2 inner-content">
-        <canvas id ="flaged_sponsor"></canvas>
+
+    <!-- Campaign Performance Overview -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Campaign Performance Overview</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Time Range:</div>
+                            <a class="dropdown-item active" href="#">Last 30 Days</a>
+                            <a class="dropdown-item" href="#">Last Quarter</a>
+                            <a class="dropdown-item" href="#">Year to Date</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="campaignPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Budget Allocation</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="budgetAllocationChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Influencer Payments
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> Content Production
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> Platform Fees
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Other Expenses
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart3 inner-content">
-        <canvas id="industryChart"></canvas>
+
+    <!-- ROI Analysis & Campaign Breakdown -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">ROI Analysis</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="small font-weight-bold">Beauty Products Campaign <span class="float-right">340%</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 85%" aria-valuenow="85"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Tech Gadgets Launch <span class="float-right">230%</span></h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 65%" aria-valuenow="65"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Fitness Apparel Collection <span class="float-right">280%</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 75%" aria-valuenow="75"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Luxury Watches Promotion <span class="float-right">180%</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Food & Beverage Series <span class="float-right">210%</span></h4>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 60%" aria-valuenow="60"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Engagement by Platform</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="engagementByPlatformChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="info">
-        <h1>Sponsors Stats</h1>
-        <div class="information">
-            <p>Total Sponsors: {{sponsor[0]}}</p>
-            <p>Different Industry: {{sponsor[1]}}</p>
-            <p>Total Flagged: {{sponsor[2]}}</p>
-            <p>Ethical Sponsor: {{sponsor[3]}}</p>
-            <p>Ad requests by Sponsor: {{sponsor[4]}}</p>
+
+    <!-- Influencer Performance Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Top Performing Influencers</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="influencerPerformanceTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Influencer</th>
+                            <th>Campaign</th>
+                            <th>Engagement Rate</th>
+                            <th>Reach</th>
+                            <th>Conversion</th>
+                            <th>ROI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@fashionista</td>
+                            <td>Summer Collection</td>
+                            <td>8.9%</td>
+                            <td>245,000</td>
+                            <td>3.2%</td>
+                            <td>320%</td>
+                        </tr>
+                        <tr>
+                            <td>@techreview</td>
+                            <td>Smartphone Launch</td>
+                            <td>7.5%</td>
+                            <td>520,000</td>
+                            <td>2.8%</td>
+                            <td>295%</td>
+                        </tr>
+                        <tr>
+                            <td>@fitnessguru</td>
+                            <td>Workout Program</td>
+                            <td>9.2%</td>
+                            <td>315,000</td>
+                            <td>4.1%</td>
+                            <td>375%</td>
+                        </tr>
+                        <tr>
+                            <td>@foodlover</td>
+                            <td>Kitchen Gadgets</td>
+                            <td>6.8%</td>
+                            <td>190,000</td>
+                            <td>3.5%</td>
+                            <td>265%</td>
+                        </tr>
+                        <tr>
+                            <td>@travelexpert</td>
+                            <td>Luggage Collection</td>
+                            <td>7.1%</td>
+                            <td>280,000</td>
+                            <td>2.9%</td>
+                            <td>240%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audience Demographics & Competitor Comparison -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Audience Demographics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="small font-weight-bold mb-2">Age Distribution</h6>
+                            <canvas id="ageDistributionChart" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="small font-weight-bold mb-2">Gender Distribution</h6>
+                            <canvas id="genderDistributionChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Performance vs. Industry Average</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="industryComparisonChart" height="250"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-
-<Script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- Initialize charts -->
 <script>
-        // setup
-        
-        const data1 = {
-            labels: {{labels|safe}},
-            datasets: [
-                {
-                    label: 'Sponsor by Industry',
-                    data: {{data|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                    ],
-                    borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                    borderwidth: 1
-                }
-            ]
-        };
-
-        const data2 = {
-            labels: {{labels2|safe}},
-            datasets: [
-                {
-                    label: 'Campaign of Sponsrors',
-                    data: {{data2|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                hoverOffset: 4
-                }
-            ]
-        };
-        const data3 = {
-            labels: {{labels3|safe}},
-            datasets: [
-                {
-                    label: 'Campaign of Sponsrors',
-                    data: {{data3|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                hoverOffset: 4
-                }
-            ]
-        };
-
-        // config
-        const config = {
-            type: 'bar',
-            data: data1,
+    document.addEventListener('DOMContentLoaded', function () {
+        // Campaign Performance Chart
+        const campaignCtx = document.getElementById('campaignPerformanceChart').getContext('2d');
+        const campaignChart = new Chart(campaignCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [{
+                    label: 'Engagement Rate',
+                    data: [5.2, 6.5, 7.8, 8.2, 7.9, 8.5, 9.1, 8.7],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    pointBackgroundColor: '#4e73df',
+                    tension: 0.3,
+                    fill: true
+                }, {
+                    label: 'Click-through Rate',
+                    data: [2.1, 2.8, 3.5, 4.1, 3.9, 4.2, 4.7, 4.3],
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                    pointBackgroundColor: '#1cc88a',
+                    tension: 0.3,
+                    fill: true
+                }, {
+                    label: 'Conversion Rate',
+                    data: [1.2, 1.5, 1.9, 2.3, 2.1, 2.5, 2.8, 2.7],
+                    borderColor: '#f6c23e',
+                    backgroundColor: 'rgba(246, 194, 62, 0.05)',
+                    pointBackgroundColor: '#f6c23e',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
             options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Sponsor by Industry',
-                        font: {
-                            size: 20
-                            
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
                         }
                     },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleColor: "#6e707e",
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Budget Allocation Chart
+        const budgetCtx = document.getElementById('budgetAllocationChart').getContext('2d');
+        const budgetChart = new Chart(budgetCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Influencer Payments', 'Content Production', 'Platform Fees', 'Other Expenses'],
+                datasets: [{
+                    data: [65, 20, 10, 5],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
                     legend: {
                         display: false
                     },
-                    
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleColor: "#6e707e",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
                 }
+            }
+        });
+
+        // Engagement by Platform Chart
+        const engagementCtx = document.getElementById('engagementByPlatformChart').getContext('2d');
+        const engagementChart = new Chart(engagementCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Instagram', 'TikTok', 'YouTube', 'Twitter', 'Facebook', 'Twitch'],
+                datasets: [{
+                    label: 'Engagement Rate',
+                    backgroundColor: '#4e73df',
+                    hoverBackgroundColor: '#2e59d9',
+                    borderColor: '#4e73df',
+                    data: [9.4, 10.2, 7.8, 5.3, 4.2, 8.1],
+                }]
             },
-        };
-        const config2 = {
-            type: 'doughnut',
-            data: data2,
             options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Campaign of Sponsrors',
-                        font: {
-                            size: 20
-                            
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
                         }
                     },
-                    legend: {
-                        position: 'top',
-                    },
-                    
-                }
-            },
-        };
-        const config3 = {
-            type: 'doughnut',
-            data: data3,
-            options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Sponsors by flagged condition',
-                        font: {
-                            size: 20
-                            
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
                         }
-                    },
+                    }
+                },
+                plugins: {
                     legend: {
-                        position: 'top',
+                        display: false
                     },
-                    
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return tooltipItem.dataset.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
                 }
+            }
+        });
+
+        // Age Distribution Chart
+        const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
+        const ageChart = new Chart(ageCtx, {
+            type: 'pie',
+            data: {
+                labels: ['18-24', '25-34', '35-44', '45+'],
+                datasets: [{
+                    data: [25, 42, 23, 10],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
             },
-        };
-        
-        // rendering
-        const Industry = document.getElementById('industryChart').getContext('2d');
-        const IndustryChart = new Chart(Industry, config);
-        
-        const campaign_ctx = document.getElementById('campaignChart').getContext('2d');
-        const campaignChart = new Chart(campaign_ctx, config2);
-        
-        const flag_ctx = document.getElementById('flaged_sponsor').getContext('2d');
-        const flagChart = new Chart(flag_ctx, config3);
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
 
-        
+        // Gender Distribution Chart
+        const genderCtx = document.getElementById('genderDistributionChart').getContext('2d');
+        const genderChart = new Chart(genderCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Female', 'Male', 'Other'],
+                datasets: [{
+                    data: [58, 38, 4],
+                    backgroundColor: ['#e74a3b', '#4e73df', '#1cc88a'],
+                    hoverBackgroundColor: ['#be3024', '#2e59d9', '#17a673'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
 
+        // Industry Comparison Chart
+        const industryCtx = document.getElementById('industryComparisonChart').getContext('2d');
+        const industryChart = new Chart(industryCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Engagement Rate',
+                    'Conversion Rate',
+                    'ROI',
+                    'Content Quality',
+                    'Reach',
+                    'Brand Lift'
+                ],
+                datasets: [{
+                    label: 'Your Campaigns',
+                    data: [85, 78, 90, 82, 75, 80],
+                    backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                    borderColor: 'rgba(78, 115, 223, 0.8)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff'
+                }, {
+                    label: 'Industry Average',
+                    data: [70, 65, 72, 68, 82, 75],
+                    backgroundColor: 'rgba(28, 200, 138, 0.2)',
+                    borderColor: 'rgba(28, 200, 138, 0.8)',
+                    pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                    pointBorderColor: '#fff'
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

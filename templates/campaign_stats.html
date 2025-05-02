@@ -1,218 +1,370 @@
 {% extends 'layout_admin.html' %}
 
-{% block title %}
-    Campaign Stats    
+{% block title %}Campaign Statistics{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
-{% block style %}
-<link rel="stylesheet" href="static/stats.css">
-
-
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Campaign Management</li>
 {% endblock %}
 
-{% block content %}
+{% block page_title %}Campaign Statistics{% endblock %}
+
+{% block page_action %}
+<div class="d-none d-sm-inline-block">
+    <button class="btn btn-sm btn-primary shadow-sm" id="downloadReport">
+        <i class="fas fa-download fa-sm text-white-50 me-1"></i> Generate Report
+    </button>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <!-- Overview Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Campaigns</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ campaigns|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Public Campaigns</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set count = [0] %}
+                            {% for sponsor, campaign in campaigns if campaign.visibility == 'Public' %}
+                            {% if count.append(count.pop() + 1) %}{% endif %}
+                            {% endfor %}
+                            {{ count[0] }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-globe fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Private Campaigns</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set count = [0] %}
+                            {% for sponsor, campaign in campaigns if campaign.visibility == 'Private' %}
+                            {% if count.append(count.pop() + 1) %}{% endif %}
+                            {% endfor %}
+                            {{ count[0] }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-lock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Flagged Campaigns</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set count = [0] %}
+                            {% for sponsor, campaign in campaigns if campaign.flag == 'yes' %}
+                            {% if count.append(count.pop() + 1) %}{% endif %}
+                            {% endfor %}
+                            {{ count[0] }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-flag fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="grid">
-            <div class="chart1 inner-content">
-                <canvas id="visibility_nicheChart"></canvas>
-            </div>
-            <div class="chart2 inner-content">
-                <canvas id="campaignChart"></canvas>
-            </div>
-            <div class="chart3 inner-content">
-                <canvas id="visibilityChart"></canvas>
-            </div>
-    <div class="info">
-        <h1 style="text-align: center; margin-top: 15px;">Campaigns</h1>
-        <table class="contain-table">
+    <div class="chart-container chart-sm">
+        <h5 class="chart-title"><i class="fas fa-chart-pie me-2"></i> Campaign Visibility</h5>
+        <div class="chart-wrapper">
+            <canvas id="visibilityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container chart-sm">
+        <h5 class="chart-title"><i class="fas fa-th-large me-2"></i> Niche Distribution</h5>
+        <div class="chart-wrapper">
+            <canvas id="nicheChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container chart-xl">
+        <h5 class="chart-title"><i class="fas fa-building me-2"></i> Campaigns by Sponsor</h5>
+        <div class="chart-wrapper">
+            <canvas id="sponsorChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-container chart-xl">
+        <h5 class="chart-title"><i class="fas fa-list me-2"></i> Campaign Management</h5>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Campaign</th>
                     <th>Sponsor</th>
-                    <th></th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            {% for sponsor,campaign in campaigns %}
-            <tr>
-                <td>{{campaign.campaign_name}}</td>
-                <td>{{sponsor.industry}}</td>
-                <form method="post">
-                    <input type="hidden" name="campaign_id" value="{{campaign.campaign_id}}">
+            <tbody>
+                {% for sponsor, campaign in campaigns %}
+                <tr>
+                    <td>{{ campaign.campaign_name }}</td>
+                    <td>
+                        <span class="badge badge-info">{{ sponsor.industry }}</span>
+                    </td>
                     <td>
                         {% if campaign.flag == 'yes' %}
-                        <a href="{{ url_for('view_campaign', campaign_id=campaign.campaign_id ) }} " role="button" style="background-color: #81b1fe; font-weight: bold; border-radius: 5px; text-decoration: inherit; color: inherit; border: 2px solid black;">View</a>          
-                        <button type="submit" name="flag" value="no" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px; ">Flaged</button>
+                        <span class="badge badge-warning">Flagged</span>
                         {% else %}
-                        <a href="{{ url_for('view_campaign', campaign_id=campaign.campaign_id ) }} " role="button" style="background-color: #91bbff; font-weight: bold; border-radius: 5px; text-decoration: inherit; color: inherit; border: 2px solid black;"> View</a>
-                        <button type="submit" name="flag" value="yes" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px;">Flag</button>
+                        <span class="badge badge-success">Active</span>
                         {% endif %}
                     </td>
-                </form>
-            </tr>
-            {% endfor %}
+                    <td>
+                        <form method="post" style="display:inline;">
+                            <input type="hidden" name="campaign_id" value="{{ campaign.campaign_id }}">
+                            <a href="{{ url_for('main.view_campaign', campaign_id=campaign.campaign_id ) }}"
+                                class="btn-action btn-primary" role="button">View</a>
+                            {% if campaign.flag == 'yes' %}
+                            <button type="submit" name="flag" value="no" class="btn-action btn-warning">Unflag</button>
+                            {% else %}
+                            <button type="submit" name="flag" value="yes" class="btn-action btn-warning">Flag</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 </div>
 
-
-<Script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-        // setup
-        
-        const data1 = {
-            labels: {{labels|safe}},
-            datasets: [
-                {
-                    label: 'Campaign by Visibility',
-                    data: {{data|safe}},
-                    backgroundColor: [
-                        'rgba(255, 205, 86, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(201, 203, 207, 0.2)',
-                        'rgba(255, 159, 64, 0.2)',
-                        'rgba(75, 192, 192, 0.2)'
+    // Chart.js defaults
+    Chart.defaults.font.family = "'Nunito', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+    Chart.defaults.font.size = 13;
+    Chart.defaults.color = '#5a5c69';
 
-                    
-                    ],
-                    borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                    borderwidth: 1
-                }
-            ]
-        };
+    // Custom color palette
+    const colorPalette = [
+        'rgba(78, 115, 223, 0.8)',
+        'rgba(28, 200, 138, 0.8)',
+        'rgba(54, 185, 204, 0.8)',
+        'rgba(246, 194, 62, 0.8)',
+        'rgba(231, 74, 59, 0.8)',
+        'rgba(133, 135, 150, 0.8)',
+        'rgba(105, 151, 255, 0.8)',
+        'rgba(78, 200, 171, 0.8)',
+    ];
 
-
-        const data2 = {
-            labels: {{labels2|safe}},
-            datasets: [
-                {
-                    label: 'Campaign by Niche',
-                    data: {{data2|safe}},
-                    backgroundColor: [
-                        'rgba(255, 205, 86, 0.2)',
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                hoverOffset: 4
-                }
-            ]
-        };
-        const data3 = {
-            labels: {{labels3|safe}},
-            datasets: [
-                {
-                    label: 'Campaign distribution by sponsor',
-                    data: {{data3|safe}},
-                    backgroundColor: [
-                        'rgba(255, 205, 86, 0.2)',
-                        'rgba(255, 159, 64, 0.2)',
-                        'rgba(255, 99, 132, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                    ],
-                    borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                    borderwidth: 1
-                }
-            ]
-        };
-
-        // config
-        const config = {
-            type: 'doughnut',
-            data: data1,
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Campaign by Visibility',
-                        font: {
-                            size: 20
-                            
-                        }
-                    },
-                    legend: {
-                        position: 'top',
-                    },
-                    
+    // Visibility Chart
+    const visibilityCtx = document.getElementById('visibilityChart').getContext('2d');
+    new Chart(visibilityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels| safe }},
+        datasets: [{
+            data: {{ data| safe }},
+        backgroundColor: [
+            'rgba(28, 200, 138, 0.8)',
+            'rgba(246, 194, 62, 0.8)'
+        ],
+        borderColor: "#ffffff",
+        borderWidth: 2,
+        hoverOffset: 6
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    boxWidth: 8
                 }
             },
-        };
-        const config2 = {
-            type: 'bar',
-            data: data2,
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Campaign by Niche',
-                        font: {
-                            size: 20
-                        }
+            tooltip: {
+                backgroundColor: '#fff',
+                titleColor: '#5a5c69',
+                titleFont: {
+                    weight: 'bold'
+                },
+                bodyColor: '#5a5c69',
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                boxPadding: 6
+            }
+        }
+    }
+    });
 
-                    },
-
-                    legend: {
-                        display: false,
-                    },
-                    
+    // Niche Chart
+    const nicheCtx = document.getElementById('nicheChart').getContext('2d');
+    new Chart(nicheCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels2| safe}},
+        datasets: [{
+            label: 'Private Campaigns',
+            data: {{ data2| safe}},
+        backgroundColor: colorPalette,
+        borderColor: colorPalette.map(color => color.replace('0.8', '1')),
+        borderWidth: 1,
+        borderRadius: 4
+            }]
+        },
+        options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#fff',
+                titleColor: '#5a5c69',
+                titleFont: {
+                    weight: 'bold'
+                },
+                bodyColor: '#5a5c69',
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                boxPadding: 6
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
                 }
             },
-        };
-        
-        const config3 = {
-            type: 'doughnut',
-            data: data3,
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Campaign distribution by Sponsor',
-                        font: {
-                            size: 20
-                        }
+            y: {
+                beginAtZero: true,
+                grid: {
+                    borderDash: [2],
+                    drawBorder: false
+                },
+                ticks: {
+                    padding: 10
+                }
+            }
+        }
+    }
+    });
 
-                    },
-                    legend: {
-                        position: 'top',
-                    },
-                    
+    // Sponsor Chart
+    const sponsorCtx = document.getElementById('sponsorChart').getContext('2d');
+    new Chart(sponsorCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels3| safe}},
+        datasets: [{
+            label: 'Number of Campaigns',
+            data: {{ data3| safe}},
+        backgroundColor: colorPalette,
+        borderColor: colorPalette.map(color => color.replace('0.8', '1')),
+        borderWidth: 1,
+        borderRadius: 4,
+        maxBarThickness: 60
+            }]
+        },
+        options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        indexAxis: 'y',
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: '#fff',
+                titleColor: '#5a5c69',
+                titleFont: {
+                    weight: 'bold'
+                },
+                bodyColor: '#5a5c69',
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                boxPadding: 6,
+                callbacks: {
+                    label: function (context) {
+                        let value = context.parsed.x;
+                        return ` ${value} ${value === 1 ? 'Campaign' : 'Campaigns'}`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: {
+                    borderDash: [2],
+                    drawBorder: false
+                },
+                ticks: {
+                    padding: 10
                 }
             },
-        };
-        // rendering
-        const visibility_niche = document.getElementById('visibility_nicheChart').getContext('2d');
-        const visibility_nicheChart = new Chart(visibility_niche, config);
-        
-        const visibility = document.getElementById('visibilityChart').getContext('2d');
-        const visibilityChart = new Chart(visibility, config2);
-        
-        const campaign = document.getElementById('campaignChart').getContext('2d');
-        const campaignChart = new Chart(campaign, config3);
+            y: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                }
+            }
+        }
+    }
+    });
+
+    // Download report functionality
+    document.getElementById('downloadReport').addEventListener('click', function () {
+        alert('Generating PDF report for Campaign Statistics...');
+        // Here you would implement the actual PDF generation and download
+    });
 </script>
 {% endblock %}

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
     <title>Influencer Engagement Platform</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -269,8 +269,8 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <img src="https://via.placeholder.com/600x400" alt="Hero Image"
-                        class="img-fluid mt-4 mt-lg-0 rounded-3" style="box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                    <img src="{{ url_for('static', filename='Images/home.png') }}" alt="Hero Image"
+                        class="img-fluid mt-4 mt-lg-0">
                 </div>
             </div>
         </div>
@@ -366,19 +366,57 @@
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
+    <!-- About Section -->
+    <section class="py-5 bg-light" id="about">
         <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h2 class="fw-bold mb-4">Ready to Transform Your Marketing Strategy?</h2>
-                    <p class="mb-5">Join thousands of successful brands and influencers who are already benefiting from
-                        our platform.</p>
-                    <a href="#login" class="btn btn-primary btn-lg px-5">Get Started Today</a>
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="{{ url_for('static', filename='Images/about.png') }}" alt="About Us"
+                        class="img-fluid">
+                </div>
+                <div class="col-lg-6">
+                    <h2 class="fw-bold mb-4">About InfluConnect</h2>
+                    <p class="lead mb-4">We're revolutionizing how brands and influencers collaborate in the digital
+                        age.</p>
+                    <p>InfluConnect was founded in 2024 with a simple mission: to create a transparent, efficient
+                        platform where brands and content creators can form authentic partnerships. Our team of
+                        marketing experts and technology enthusiasts has built a solution that eliminates the friction
+                        in influencer marketing.</p>
+                    <p>We believe in the power of authentic content and meaningful partnerships. Our platform provides
+                        the tools, analytics, and support needed to create successful campaigns that resonate with
+                        audiences.</p>
+                    <div class="d-flex mt-4">
+                        <div class="me-4 text-center">
+                            <h3 class="fw-bold text-primary">1000+</h3>
+                            <p class="text-muted">Active Brands</p>
+                        </div>
+                        <div class="me-4 text-center">
+                            <h3 class="fw-bold text-primary">5000+</< /h3>
+                                <p class="text-muted">Influencers</p>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="fw-bold text-primary">10k+</h3>
+                            <p class="text-muted">Campaigns</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <h2 class="fw-bold mb-4">Ready to Transform Your Marketing Strategy?</h2>
+                        <p class="mb-5">Join thousands of successful brands and influencers who are already benefiting from
+                            our platform.</p>
+                        <a href="#login" class="btn btn-primary btn-lg px-5 text-center">Get Started Today</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
     <!-- Footer -->
     <footer class="footer">

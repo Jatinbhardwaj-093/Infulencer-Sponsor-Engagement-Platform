@@ -1,91 +1,2365 @@
 {% extends 'layout_admin.html' %}
 
 {% block title %}
-    Admin Home Page
-{% endblock %}  
-
-{% block style %}
-    <link rel="stylesheet" href="static/admin_home.css">
+{{ title if title else 'Admin Dashboard' }}
 {% endblock %}
 
-{% block content %}
-<div class="grid">
-<div class="influencer">
-    <h1>Active Influencer</h1>
-    <table class="contain-table">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Genre</th>
-            <th>Platform</th>
-            <th>Popularity</th>
-            <th></th>
-        </tr>
-        </thead>
-        {% for influencer in influencers %}
-            <tr>
-                <td>{{influencer.influencer_id}}</td>
-                <td>{{influencer.username}}</td>
-                <td>{{influencer.email}}</td>
-                <td>{{influencer.genre}}</td>
-                <td>{{influencer.platform}}</td>
-                <td>{{influencer.popularity}}</td>
-                <form method="post">
-                    <input type="hidden" name="influencer_id" value="{{influencer.influencer_id}}">
-                    <td>
-                        {% if influencer.flag == 'yes' %}
-                            <button type="submit" name="flag" value="no" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px; ">Flaged</button>
-                            <button type="submit" name="delete" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px;">Delete</button>
-                        {% else %}
-                            <button type="submit" name="flag" value="yes" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px;">Flag</button>
-                            <button type="submit" name="delete" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px; ">Delete</button>
-                        {% endif %}
-                    </td>
-                </form>
-            </tr>
-        {% endfor %}    
-    </table>
-</div>
-<div class="sponsor">
-    <h1>Active Sponsor</h1>
-    <table class="contain-table">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Industry</th>
-            <th></th>
-        </tr>
-        </thead>
-        {% for sponsor in sponsors %}
-            <tr>
-                <td>{{sponsor.sponsor_id}}</td>
-                <td>{{sponsor.username}}</td>
-                <td>{{sponsor.email}}</td>
-                <td>{{sponsor.industry}}</td>
-                <form method="post">
-                    <td>
-                        <input type="hidden" name="sponsor_id" value="{{sponsor.sponsor_id}}">
-                        {% if sponsor.flag == 'yes' %}
-                            <button type="submit" name="flag_sponsor" value="no" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px; ">Flagged</button>
-                            <button type="submit" name="delete_sponsor" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px;">Delete</button>
-                            
-                        {% else %}
-                            <button type="submit" name="flag_sponsor" value="yes" style="background-color: #e7e71f; font-weight: bold; border-radius: 5px;">Flag</button>
-                            <button type="submit" name="delete_sponsor" value="yes" style="background-color: #f08080; font-weight: bold; border-radius: 5px; ">Delete</button>
-                        {% endif %}
-                        
-                    </td>
-                </form>
-                
-            </tr>
-        {% endfor %}
-    </table>
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='admin_home.css') }}">
+<style>
+    /* Custom styles for single line account boxes */
+    .account-summary-row {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        margin: 0 -0.5rem;
+        overflow-x: auto;
+    }
+
+    .summary-card {
+        flex: 0 0 18%;
+        max-width: 18%;
+        padding: 0.25rem;
+        margin: 0.25rem;
+    }
+
+    .summary-card .card {
+        height: 100%;
+    }
+
+    .summary-card .card-body {
+        padding: 0.75rem;
+    }
+
+    /* Make text in summary cards smaller */
+    .summary-card .text-xs {
+        font-size: 0.7rem;
+    }
+
+    .summary-card .h5 {
+        font-size: 1.1rem;
+    }
+
+    /* Pagination styling */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .pagination {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .page-link {
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        color: #4e73df;
+        background-color: #fff;
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background-color: #eaecf4;
+    }
+
+    .page-item.active .page-link {
+        background-color: #4e73df;
+        color: white;
+        border-color: #4e73df;
+    }
+
+    .page-item.disabled .page-link {
+        color: #858796;
+        pointer-events: none;
+        background-color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .account-summary-row {
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            flex: 0 0 48%;
+            max-width: 48%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .summary-card {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ title if title else 'Dashboard' }}</li>
+{% endblock %}
+
+{% block page_title %}{{ title if title else 'Dashboard Overview' }}{% endblock %}
+
+{% block dashboard_content %}
+{% if view == 'dashboard' or view is not defined %}
+<!-- Dashboard Content -->
+
+<!-- Account Summary Section -->
+<div class="account-summary-row mb-6">
+    <!-- Admin Accounts -->
+    <div class="summary-card">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Admin Accounts</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ admin_count if admin_count != None else 0
+                            }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-shield fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sponsor Accounts -->
+    <div class="summary-card">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Sponsor Accounts</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ sponsor_count if sponsor_count != None
+                            else 0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Influencer Accounts -->
+    <div class="summary-card">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Influencer Accounts</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ influencer_count if influencer_count !=
+                            None else 0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-star fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Campaigns -->
+    <div class="summary-card">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Active Campaigns</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaign_count if
+                            active_campaign_count != None else 0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Earnings -->
+    <div class="summary-card">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Earnings</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">$ {{ total_earnings if total_earnings !=
+                            None else 0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- User Management Tables -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <!-- Active Influencers Section -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Active Influencers</h6>
+                <div class="input-group" style="width: 200px;">
+                    <input type="text" id="influencer-search" class="form-control" placeholder="Search influencers...">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="influencer-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Platform</th>
+                                <th>Genre</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for influencer in influencers %}
+                            <tr class="{% if influencer.flag == 'yes' %}table-warning{% endif %}">
+                                <td>{{influencer.influencer_id}}</td>
+                                <td>
+                                    {{influencer.username}}
+                                    <div class="small text-muted">{{influencer.email}}</div>
+                                </td>
+                                <td>{{influencer.platform}}</td>
+                                <td>{{influencer.genre}}</td>
+                                <td>
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="influencer_id" value="{{influencer.influencer_id}}">
+                                        {% if influencer.flag == 'yes' %}
+                                        <button type="submit" name="flag" value="no" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-flag"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" name="flag" value="yes"
+                                            class="btn btn-outline-warning btn-sm">
+                                            <i class="far fa-flag"></i>
+                                        </button>
+                                        {% endif %}
+                                        <button type="submit" name="delete" value="yes" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls for Influencers -->
+                <div class="pagination-container mt-3">
+                    <div class="pagination justify-content-center">
+                        <button class="btn btn-sm btn-outline-primary prev-btn" id="influencer-prev" disabled>&laquo;
+                            Previous</button>
+                        <span class="mx-3 pagination-info" id="influencer-page-info">Page <span
+                                id="influencer-current-page">1</span> of <span
+                                id="influencer-total-pages">1</span></span>
+                        <button class="btn btn-sm btn-outline-primary next-btn" id="influencer-next">Next
+                            &raquo;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sponsor Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-success">Active Sponsors</h6>
+                <div class="input-group" style="width: 200px;">
+                    <input type="text" id="sponsor-search" class="form-control" placeholder="Search sponsors...">
+                    <div class="input-group-append">
+                        <button class="btn btn-success" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="sponsor-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Industry</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sponsor in sponsors %}
+                            <tr class="{% if sponsor.flag == 'yes' %}table-warning{% endif %}">
+                                <td>{{sponsor.sponsor_id}}</td>
+                                <td>
+                                    {{sponsor.username}}
+                                    <div class="small text-muted">{{sponsor.email}}</div>
+                                </td>
+                                <td>{{sponsor.industry}}</td>
+                                <td>
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="sponsor_id" value="{{sponsor.sponsor_id}}">
+                                        {% if sponsor.flag == 'yes' %}
+                                        <button type="submit" name="flag_sponsor" value="no"
+                                            class="btn btn-warning btn-sm">
+                                            <i class="fas fa-flag"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="submit" name="flag_sponsor" value="yes"
+                                            class="btn btn-outline-warning btn-sm">
+                                            <i class="far fa-flag"></i>
+                                        </button>
+                                        {% endif %}
+                                        <button type="submit" name="delete_sponsor" value="yes"
+                                            class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls for Sponsors -->
+                <div class="pagination-container mt-3">
+                    <div class="pagination justify-content-center">
+                        <button class="btn btn-sm btn-outline-success prev-btn" id="sponsor-prev" disabled>&laquo;
+                            Previous</button>
+                        <span class="mx-3 pagination-info" id="sponsor-page-info">Page <span
+                                id="sponsor-current-page">1</span> of <span id="sponsor-total-pages">1</span></span>
+                        <button class="btn btn-sm btn-outline-success next-btn" id="sponsor-next">Next
+                            &raquo;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+{% elif view == 'users' %}
+<!-- User Management View -->
+<div class="row">
+    <!-- User Management Tabs -->
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="influencers-tab" data-toggle="tab" href="#influencers"
+                            role="tab">
+                            <i class="fas fa-users mr-1"></i> Influencers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sponsors-tab" data-toggle="tab" href="#sponsors" role="tab">
+                            <i class="fas fa-building mr-1"></i> Sponsors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pending-tab" data-toggle="tab" href="#pending" role="tab">
+                            <i class="fas fa-clock mr-1"></i> Pending Approvals
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="influencers" role="tabpanel">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="card-title text-primary">Influencers Management</h5>
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" id="influencer-search-users" class="form-control"
+                                    placeholder="Search influencers...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="influencer-table-users">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Genre</th>
+                                        <th>Platform</th>
+                                        <th>Followers</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for influencer in influencers %}
+                                    <tr class="{% if influencer.flag == 'yes' %}table-warning{% endif %}">
+                                        <td>{{influencer.influencer_id}}</td>
+                                        <td>{{influencer.username}}</td>
+                                        <td>{{influencer.email}}</td>
+                                        <td>{{influencer.genre}}</td>
+                                        <td>{{influencer.platform}}</td>
+                                        <td>{{influencer.followers}}</td>
+                                        <td>
+                                            {% if influencer.flag == 'yes' %}
+                                            <span class="badge badge-warning">Flagged</span>
+                                            {% else %}
+                                            <span class="badge badge-success">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="influencer_id"
+                                                    value="{{influencer.influencer_id}}">
+                                                {% if influencer.flag == 'yes' %}
+                                                <button type="submit" name="flag" value="no"
+                                                    class="btn btn-warning btn-sm" title="Remove flag">
+                                                    <i class="fas fa-flag"></i>
+                                                </button>
+                                                {% else %}
+                                                <button type="submit" name="flag" value="yes"
+                                                    class="btn btn-outline-warning btn-sm" title="Flag account">
+                                                    <i class="far fa-flag"></i>
+                                                </button>
+                                                {% endif %}
+                                                <button type="submit" name="delete" value="yes"
+                                                    class="btn btn-danger btn-sm" title="Delete account">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-info btn-sm view-profile"
+                                                    title="View profile">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sponsors" role="tabpanel">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="card-title text-success">Sponsors Management</h5>
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" id="sponsor-search-users" class="form-control"
+                                    placeholder="Search sponsors...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-success" type="button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="sponsor-table-users">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Company</th>
+                                        <th>Email</th>
+                                        <th>Industry</th>
+                                        <th>Contact Person</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sponsor in sponsors %}
+                                    <tr class="{% if sponsor.flag == 'yes' %}table-warning{% endif %}">
+                                        <td>{{sponsor.sponsor_id}}</td>
+                                        <td>{{sponsor.username}}</td>
+                                        <td>{{sponsor.email}}</td>
+                                        <td>{{sponsor.industry}}</td>
+                                        <td>{{sponsor.contact_person if sponsor.contact_person else 'N/A'}}</td>
+                                        <td>
+                                            {% if sponsor.flag == 'yes' %}
+                                            <span class="badge badge-warning">Flagged</span>
+                                            {% else %}
+                                            <span class="badge badge-success">Active</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="post" class="d-inline">
+                                                <input type="hidden" name="sponsor_id" value="{{sponsor.sponsor_id}}">
+                                                {% if sponsor.flag == 'yes' %}
+                                                <button type="submit" name="flag_sponsor" value="no"
+                                                    class="btn btn-warning btn-sm" title="Remove flag">
+                                                    <i class="fas fa-flag"></i>
+                                                </button>
+                                                {% else %}
+                                                <button type="submit" name="flag_sponsor" value="yes"
+                                                    class="btn btn-outline-warning btn-sm" title="Flag account">
+                                                    <i class="far fa-flag"></i>
+                                                </button>
+                                                {% endif %}
+                                                <button type="submit" name="delete_sponsor" value="yes"
+                                                    class="btn btn-danger btn-sm" title="Delete account">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-info btn-sm view-profile"
+                                                    title="View profile">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="pending" role="tabpanel">
+                        <h5 class="card-title text-info">Pending Account Approvals</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i> No pending account approvals at this time.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif view == 'campaigns' %}
+<!-- Campaign Management View -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab">
+                            <i class="fas fa-play-circle mr-1"></i> Active Campaigns
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pending-campaigns-tab" data-toggle="tab" href="#pending-campaigns"
+                            role="tab">
+                            <i class="fas fa-clock mr-1"></i> Pending Campaigns
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab">
+                            <i class="fas fa-check-circle mr-1"></i> Completed
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="active" role="tabpanel">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="card-title text-primary">Active Campaigns</h5>
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" id="campaign-search" class="form-control"
+                                    placeholder="Search campaigns...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="campaign-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Campaign Name</th>
+                                        <th>Sponsor</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Influencers</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set active_found = false %}
+                                    {% for campaign in campaigns %}
+                                    {% if campaign.status == 'active' %}
+                                    {% set active_found = true %}
+                                    <tr>
+                                        <td>{{campaign.campaign_id}}</td>
+                                        <td>{{campaign.title}}</td>
+                                        <td>{{campaign.sponsor_username}}</td>
+                                        <td>{{campaign.start_date}}</td>
+                                        <td>{{campaign.end_date}}</td>
+                                        <td>{{campaign.influencer_count if campaign.influencer_count else '0'}}</td>
+                                        <td><span class="badge badge-success">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-sm view-campaign" title="View details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-warning btn-sm pause-campaign"
+                                                title="Pause campaign">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    {% if not active_found %}
+                                    <tr>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="pending-campaigns" role="tabpanel">
+                        <h5 class="card-title text-warning">Pending Campaigns</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Campaign Name</th>
+                                        <th>Sponsor</th>
+                                        <th>Start Date</th>
+                                        <th>Budget</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set pending_found = false %}
+                                    {% for campaign in campaigns %}
+                                    {% if campaign.status == 'pending' %}
+                                    {% set pending_found = true %}
+                                    <tr>
+                                        <td>{{campaign.campaign_id}}</td>
+                                        <td>{{campaign.title}}</td>
+                                        <td>{{campaign.sponsor_username}}</td>
+                                        <td>{{campaign.start_date}}</td>
+                                        <td>${{campaign.budget}}</td>
+                                        <td>
+                                            <button class="btn btn-success btn-sm approve-campaign" title="Approve">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm reject-campaign" title="Reject">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    {% if not pending_found %}
+                                    <tr>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="completed" role="tabpanel">
+                        <h5 class="card-title text-success">Completed Campaigns</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Campaign Name</th>
+                                        <th>Sponsor</th>
+                                        <th>End Date</th>
+                                        <th>Performance</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set completed_found = false %}
+                                    {% for campaign in campaigns %}
+                                    {% if campaign.status == 'completed' %}
+                                    {% set completed_found = true %}
+                                    <tr>
+                                        <td>{{campaign.campaign_id}}</td>
+                                        <td>{{campaign.title}}</td>
+                                        <td>{{campaign.sponsor_username}}</td>
+                                        <td>{{campaign.end_date}}</td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                    style="width: 85%" aria-valuenow="85" aria-valuemin="0"
+                                                    aria-valuemax="100">85%</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-info btn-sm view-report" title="View report">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    {% if not completed_found %}
+                                    <tr>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                        <td>...</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif view == 'reports' %}
+<!-- Analytics & Reports View -->
+<div class="row">
+    <!-- Platform Performance Overview -->
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Platform Performance Overview</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                        id="timeRangeDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Last 30 Days
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="timeRangeDropdown">
+                        <a class="dropdown-item active" href="#">Last 30 Days</a>
+                        <a class="dropdown-item" href="#">Last Quarter</a>
+                        <a class="dropdown-item" href="#">Year to Date</a>
+                        <a class="dropdown-item" href="#">All Time</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">{{ influencers|length + sponsors|length }}
+                        </div>
+                        <div class="text-sm text-muted mt-2">
+                            <span class="text-success"><i class="fas fa-arrow-up"></i> 12%</span> since last month
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Campaigns</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">{{ campaigns|length }}</div>
+                        <div class="text-sm text-muted mt-2">
+                            <span class="text-success"><i class="fas fa-arrow-up"></i> 8%</span> since last month
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg Campaign Value</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">$5,240</div>
+                        <div class="text-sm text-muted mt-2">
+                            <span class="text-success"><i class="fas fa-arrow-up"></i> 3%</span> since last month
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Platform Revenue</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800">$42,500</div>
+                        <div class="text-sm text-muted mt-2">
+                            <span class="text-success"><i class="fas fa-arrow-up"></i> 6%</span> since last month
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <h6 class="text-muted mb-3">Platform Activity (Last 30 Days)</h6>
+                        <div style="height: 300px;">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-3">User Distribution</h6>
+                        <div style="height: 260px;">
+                            <canvas id="userDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue & Campaigns Analytics Row -->
+    <div class="row">
+        <!-- Revenue Metrics -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Revenue Metrics</h6>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active">Monthly</button>
+                        <button type="button" class="btn btn-outline-secondary">Quarterly</button>
+                        <button type="button" class="btn btn-outline-secondary">Yearly</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="height: 350px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <hr>
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <p class="text-muted mb-1">Total Revenue (YTD)</p>
+                            <h5 class="font-weight-bold">$184,750</h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted mb-1">Projected Annual</p>
+                            <h5 class="font-weight-bold">$526,000</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaign Performance -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Campaign Performance</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4" style="height: 250px;">
+                        <canvas id="campaignPerformanceChart"></canvas>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless">
+                            <thead>
+                                <tr class="bg-light">
+                                    <th>Campaign Type</th>
+                                    <th>Avg. ROI</th>
+                                    <th>Engagement Rate</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Social Media</td>
+                                    <td><span class="font-weight-bold">342%</span></td>
+                                    <td>9.4%</td>
+                                    <td>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 87%"
+                                                aria-valuenow="87" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Product Review</td>
+                                    <td><span class="font-weight-bold">285%</span></td>
+                                    <td>7.2%</td>
+                                    <td>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 76%"
+                                                aria-valuenow="76" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Brand Ambassador</td>
+                                    <td><span class="font-weight-bold">410%</span></td>
+                                    <td>12.8%</td>
+                                    <td>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 92%"
+                                                aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Growth & Platform Health Row -->
+    <div class="row">
+        <!-- User Growth & Retention -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">User Growth & Retention</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="userGrowthTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="growth-tab" data-toggle="tab" href="#growth"
+                                role="tab">Growth</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="retention-tab" data-toggle="tab" href="#retention"
+                                role="tab">Retention</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="demographics-tab" data-toggle="tab" href="#demographics"
+                                role="tab">Demographics</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="userGrowthTabContent">
+                        <div class="tab-pane fade show active" id="growth" role="tabpanel">
+                            <div style="height: 300px;">
+                                <canvas id="userGrowthChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="retention" role="tabpanel">
+                            <div style="height: 300px;">
+                                <canvas id="userRetentionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="demographics" role="tabpanel">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div style="height: 280px;">
+                                        <canvas id="demographicsChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <h6 class="small font-weight-bold">Influencer Age Groups <span
+                                                class="float-right">Percentage</span></h6>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-danger" role="progressbar" style="width: 15%"
+                                                aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="small mb-0">18-24 years (15%)</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="small font-weight-bold">25-34 years <span
+                                                class="float-right">Percentage</span></h6>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 40%"
+                                                aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="small mb-0">25-34 years (40%)</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="small font-weight-bold">35-44 years <span
+                                                class="float-right">Percentage</span></h6>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 30%"
+                                                aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="small mb-0">35-44 years (30%)</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="small font-weight-bold">45+ years <span
+                                                class="float-right">Percentage</span></h6>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 15%"
+                                                aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="small mb-0">45+ years (15%)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Health -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">Platform Health</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <p class="text-muted mb-1">System Uptime</p>
+                        <h5 class="font-weight-bold mb-0">99.98%</h5>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 99.98%"
+                                aria-valuenow="99.98" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-muted mb-1">Average Response Time</p>
+                        <h5 class="font-weight-bold mb-0">426ms</h5>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 85%" aria-valuenow="85"
+                                aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-muted mb-1">Error Rate</p>
+                        <h5 class="font-weight-bold mb-0">0.03%</h5>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 96%"
+                                aria-valuenow="96" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1">Database Performance</p>
+                        <h5 class="font-weight-bold mb-0">Excellent</h5>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 92%"
+                                aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4 mb-0">
+                        <h6 class="font-weight-bold">System Notification</h6>
+                        <p class="mb-0">Scheduled maintenance: May 5, 2025 at 2:00 AM UTC. Estimated downtime: 15
+                            minutes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Security Overview</h6>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center p-0">
+                    <div class="security-gauge text-center py-3">
+                        <div style="width: 150px; height: 150px;">
+                            <canvas id="securityGauge"></canvas>
+                        </div>
+                        <h6 class="mt-2 mb-0">Security Score</h6>
+                        <h4 class="text-success">94/100</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Content -->
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Top Performing Content</h6>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary active">All</button>
+                    <button type="button" class="btn btn-outline-primary">Instagram</button>
+                    <button type="button" class="btn btn-outline-primary">YouTube</button>
+                    <button type="button" class="btn btn-outline-primary">TikTok</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Content</th>
+                                <th>Creator</th>
+                                <th>Platform</th>
+                                <th>Campaign</th>
+                                <th>Engagement</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Unboxing Tech Review</td>
+                                <td>@techguru</td>
+                                <td><i class="fab fa-youtube text-danger"></i> YouTube</td>
+                                <td>NextGen Laptop Series</td>
+                                <td>1.2M <small class="text-muted">views</small></td>
+                                <td><span class="badge badge-success">524%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Workout Routine</td>
+                                <td>@fitnessjunkie</td>
+                                <td><i class="fab fa-instagram text-purple"></i> Instagram</td>
+                                <td>FitLife Supplements</td>
+                                <td>845K <small class="text-muted">likes</small></td>
+                                <td><span class="badge badge-success">478%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Dance Challenge</td>
+                                <td>@dancequeen</td>
+                                <td><i class="fab fa-tiktok"></i> TikTok</td>
+                                <td>Summer Clothing Line</td>
+                                <td>3.4M <small class="text-muted">views</small></td>
+                                <td><span class="badge badge-success">412%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Cooking Tutorial</td>
+                                <td>@cheflife</td>
+                                <td><i class="fab fa-instagram text-purple"></i> Instagram</td>
+                                <td>Kitchen Essentials</td>
+                                <td>620K <small class="text-muted">likes</small></td>
+                                <td><span class="badge badge-success">389%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Travel Vlog</td>
+                                <td>@wanderlust</td>
+                                <td><i class="fab fa-youtube text-danger"></i> YouTube</td>
+                                <td>Luxury Hotels Collection</td>
+                                <td>950K <small class="text-muted">views</small></td>
+                                <td><span class="badge badge-success">356%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif view == 'settings' %}
+<!-- Platform Settings View -->
+<div class="row">
+    <!-- Settings Tabs -->
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab">
+                            <i class="fas fa-cog mr-1"></i> General Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="fees-tab" data-toggle="tab" href="#fees" role="tab">
+                            <i class="fas fa-dollar-sign mr-1"></i> Platform Fees
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="email-tab" data-toggle="tab" href="#email" role="tab">
+                            <i class="fas fa-envelope mr-1"></i> Email Templates
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="backup-tab" data-toggle="tab" href="#backup" role="tab">
+                            <i class="fas fa-database mr-1"></i> Backup & Maintenance
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="general" role="tabpanel">
+                        <h5 class="card-title mb-3">General Platform Settings</h5>
+                        <form>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Platform Name</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" value="Influencer Engagement Platform">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Admin Email</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" value="admin@influencerplatform.com">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">File Upload Max Size</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" value="10 MB">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">User Registration</label>
+                                <div class="col-sm-9">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="enableRegistration"
+                                            checked>
+                                        <label class="custom-control-label" for="enableRegistration">Enable new user
+                                            registration</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-9 offset-sm-3">
+                                    <button type="button" class="btn btn-primary">Save Settings</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="fees" role="tabpanel">
+                        <h5 class="card-title mb-3">Platform Fees & Commissions</h5>
+                        <form>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Platform Commission</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" value="10">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Transaction Fee</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" value="2.5">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Sponsor Subscription Fee</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number" class="form-control" value="99">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">/month</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-9 offset-sm-3">
+                                    <button type="button" class="btn btn-primary">Save Fee Structure</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="email" role="tabpanel">
+                        <h5 class="card-title mb-3">Email Notification Templates</h5>
+                        <div class="form-group">
+                            <label>Welcome Email Template</label>
+                            <textarea class="form-control" rows="5">Dear {user},
+
+Welcome to the Influencer Engagement Platform! We're excited to have you join our community.
+
+Your account has been successfully created and is ready to use. You can now log in using your email and password.
+
+If you have any questions or need assistance, please don't hesitate to contact our support team.
+
+Best regards,
+The Influencer Platform Team</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Campaign Assignment Email</label>
+                            <textarea class="form-control" rows="5">Dear {influencer},
+
+You have been selected for the campaign: {campaign_name}!
+
+Please log in to your dashboard to review the details and accept the offer.
+
+Best regards,
+The Influencer Platform Team</textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary">Save Email Templates</button>
+                    </div>
+
+                    <div class="tab-pane fade" id="backup" role="tabpanel">
+                        <h5 class="card-title mb-3">Database Backup & Maintenance</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i> Your last database backup was on May 1, 2025
+                        </div>
+                        <button type="button" class="btn btn-primary mb-3">
+                            <i class="fas fa-download mr-2"></i> Backup Database Now
+                        </button>
+
+                        <h6 class="mt-4">Scheduled Backups</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Backup Frequency</label>
+                            <div class="col-sm-9">
+                                <select class="form-control">
+                                    <option>Daily</option>
+                                    <option selected>Weekly</option>
+                                    <option>Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Retention Period</label>
+                            <div class="col-sm-9">
+                                <select class="form-control">
+                                    <option>7 days</option>
+                                    <option>14 days</option>
+                                    <option selected>30 days</option>
+                                    <option>90 days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary">Save Backup Settings</button>
+
+                        <hr class="my-4">
+
+                        <h6>Database Maintenance</h6>
+                        <button type="button" class="btn btn-warning mr-2">
+                            <i class="fas fa-broom mr-2"></i> Clean Temporary Data
+                        </button>
+                        <button type="button" class="btn btn-danger">
+                            <i class="fas fa-tools mr-2"></i> Optimize Database
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<!-- Bootstrap 4 JavaScript for tabs (needed for data-toggle="tab") -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+
+<!-- Custom scripts for admin functionality -->
+<script>
+    // Search functionality for tables
+    $(document).ready(function () {
+        // Influencer search in dashboard
+        $("#influencer-search").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            $("#influencer-table tbody tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+        // Sponsor search in dashboard
+        $("#sponsor-search").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            $("#sponsor-table tbody tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+        // Influencer search in users tab
+        $("#influencer-search-users").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            $("#influencer-table-users tbody tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+        // Initialize tabs
+        $('a[data-toggle="tab"]').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
+
+        // Remember active tab
+        var hash = window.location.hash;
+        if (hash) {
+            $('.nav-tabs a[href="' + hash + '"]').tab('show');
+        }
+
+        // Change hash for page-reload
+        $('.nav-tabs a').on('shown.bs.tab', function (e) {
+            window.location.hash = e.target.hash;
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Influencer pagination
+        const influencerTable = document.getElementById('influencer-table');
+        if (influencerTable) {
+            const influencerRows = Array.from(influencerTable.querySelectorAll('tbody tr'));
+            const influencerPrevBtn = document.getElementById('influencer-prev');
+            const influencerNextBtn = document.getElementById('influencer-next');
+            const influencerCurrentPageSpan = document.getElementById('influencer-current-page');
+            const influencerTotalPagesSpan = document.getElementById('influencer-total-pages');
+            const influencerItemsPerPage = 5; // Changed from 10 to 5 items per page
+            let influencerCurrentPage = 1;
+            const influencerTotalPages = Math.ceil(influencerRows.length / influencerItemsPerPage);
+
+            if (influencerTotalPagesSpan) {
+                influencerTotalPagesSpan.textContent = influencerTotalPages.toString();
+            }
+
+            function paginateInfluencers(page) {
+                // Hide all rows
+                influencerRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Calculate start and end index
+                const startIndex = (page - 1) * influencerItemsPerPage;
+                const endIndex = startIndex + influencerItemsPerPage;
+
+                // Display only rows for current page
+                for (let i = startIndex; i < endIndex && i < influencerRows.length; i++) {
+                    influencerRows[i].style.display = '';
+                }
+
+                // Update current page indicator
+                if (influencerCurrentPageSpan) {
+                    influencerCurrentPageSpan.textContent = page.toString();
+                }
+
+                // Update button states
+                if (influencerPrevBtn) {
+                    if (page === 1) {
+                        influencerPrevBtn.disabled = true;
+                    } else {
+                        influencerPrevBtn.disabled = false;
+                    }
+                }
+
+                if (influencerNextBtn) {
+                    if (page === influencerTotalPages || influencerTotalPages === 0) {
+                        influencerNextBtn.disabled = true;
+                    } else {
+                        influencerNextBtn.disabled = false;
+                    }
+                }
+
+                influencerCurrentPage = page;
+            }
+
+            // Initialize pagination
+            paginateInfluencers(1);
+
+            // Add event listeners for navigation
+            if (influencerPrevBtn) {
+                influencerPrevBtn.addEventListener('click', function () {
+                    if (influencerCurrentPage > 1) {
+                        paginateInfluencers(influencerCurrentPage - 1);
+                    }
+                });
+            }
+
+            if (influencerNextBtn) {
+                influencerNextBtn.addEventListener('click', function () {
+                    if (influencerCurrentPage < influencerTotalPages) {
+                        paginateInfluencers(influencerCurrentPage + 1);
+                    }
+                });
+            }
+
+            // Search functionality for influencers
+            const influencerSearch = document.getElementById('influencer-search');
+            if (influencerSearch) {
+                influencerSearch.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const filteredRows = influencerRows.filter(row => {
+                        const text = row.textContent.toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        row.dataset.searchHidden = isVisible ? 'false' : 'true';
+                        return isVisible;
+                    });
+
+                    // Calculate new total pages
+                    const newTotalPages = Math.ceil(filteredRows.length / influencerItemsPerPage);
+                    if (influencerTotalPagesSpan) {
+                        influencerTotalPagesSpan.textContent = newTotalPages.toString();
+                    }
+
+                    // Hide all rows first
+                    influencerRows.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Show only filtered rows for current page
+                    const startIndex = 0;
+                    const endIndex = startIndex + influencerItemsPerPage;
+                    for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                        filteredRows[i].style.display = '';
+                    }
+
+                    // Reset to page 1
+                    if (influencerCurrentPageSpan) {
+                        influencerCurrentPageSpan.textContent = '1';
+                    }
+                    influencerCurrentPage = 1;
+
+                    // Update button states
+                    if (influencerPrevBtn) {
+                        influencerPrevBtn.disabled = true;
+                    }
+                    if (influencerNextBtn) {
+                        influencerNextBtn.disabled = newTotalPages <= 1;
+                    }
+                });
+            }
+        }
+
+        // Sponsor pagination
+        const sponsorTable = document.getElementById('sponsor-table');
+        if (sponsorTable) {
+            const sponsorRows = Array.from(sponsorTable.querySelectorAll('tbody tr'));
+            const sponsorPrevBtn = document.getElementById('sponsor-prev');
+            const sponsorNextBtn = document.getElementById('sponsor-next');
+            const sponsorCurrentPageSpan = document.getElementById('sponsor-current-page');
+            const sponsorTotalPagesSpan = document.getElementById('sponsor-total-pages');
+            const sponsorItemsPerPage = 5; // Changed from 10 to 5 items per page
+            let sponsorCurrentPage = 1;
+            const sponsorTotalPages = Math.ceil(sponsorRows.length / sponsorItemsPerPage);
+
+            if (sponsorTotalPagesSpan) {
+                sponsorTotalPagesSpan.textContent = sponsorTotalPages.toString();
+            }
+
+            function paginateSponsors(page) {
+                // Hide all rows
+                sponsorRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Calculate start and end index
+                const startIndex = (page - 1) * sponsorItemsPerPage;
+                const endIndex = startIndex + sponsorItemsPerPage;
+
+                // Display only rows for current page
+                for (let i = startIndex; i < endIndex && i < sponsorRows.length; i++) {
+                    sponsorRows[i].style.display = '';
+                }
+
+                // Update current page indicator
+                if (sponsorCurrentPageSpan) {
+                    sponsorCurrentPageSpan.textContent = page.toString();
+                }
+
+                // Update button states
+                if (sponsorPrevBtn) {
+                    if (page === 1) {
+                        sponsorPrevBtn.disabled = true;
+                    } else {
+                        sponsorPrevBtn.disabled = false;
+                    }
+                }
+
+                if (sponsorNextBtn) {
+                    if (page === sponsorTotalPages || sponsorTotalPages === 0) {
+                        sponsorNextBtn.disabled = true;
+                    } else {
+                        sponsorNextBtn.disabled = false;
+                    }
+                }
+
+                sponsorCurrentPage = page;
+            }
+
+            // Initialize pagination
+            paginateSponsors(1);
+
+            // Add event listeners for navigation
+            if (sponsorPrevBtn) {
+                sponsorPrevBtn.addEventListener('click', function () {
+                    if (sponsorCurrentPage > 1) {
+                        paginateSponsors(sponsorCurrentPage - 1);
+                    }
+                });
+            }
+
+            if (sponsorNextBtn) {
+                sponsorNextBtn.addEventListener('click', function () {
+                    if (sponsorCurrentPage < sponsorTotalPages) {
+                        paginateSponsors(sponsorCurrentPage + 1);
+                    }
+                });
+            }
+
+            // Search functionality for sponsors
+            const sponsorSearch = document.getElementById('sponsor-search');
+            if (sponsorSearch) {
+                sponsorSearch.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const filteredRows = sponsorRows.filter(row => {
+                        const text = row.textContent.toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        row.dataset.searchHidden = isVisible ? 'false' : 'true';
+                        return isVisible;
+                    });
+
+                    // Calculate new total pages
+                    const newTotalPages = Math.ceil(filteredRows.length / sponsorItemsPerPage);
+                    if (sponsorTotalPagesSpan) {
+                        sponsorTotalPagesSpan.textContent = newTotalPages.toString();
+                    }
+
+                    // Hide all rows first
+                    sponsorRows.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Show only filtered rows for current page
+                    const startIndex = 0;
+                    const endIndex = startIndex + sponsorItemsPerPage;
+                    for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                        filteredRows[i].style.display = '';
+                    }
+
+                    // Reset to page 1
+                    if (sponsorCurrentPageSpan) {
+                        sponsorCurrentPageSpan.textContent = '1';
+                    }
+                    sponsorCurrentPage = 1;
+
+                    // Update button states
+                    if (sponsorPrevBtn) {
+                        sponsorPrevBtn.disabled = true;
+                    }
+                    if (sponsorNextBtn) {
+                        sponsorNextBtn.disabled = newTotalPages <= 1;
+                    }
+                });
+            }
+        }
+
+        // User Management - Influencer table pagination
+        const influencerTableUsers = document.getElementById('influencer-table-users');
+        if (influencerTableUsers) {
+            const influencerRowsUsers = Array.from(influencerTableUsers.querySelectorAll('tbody tr'));
+            let influencerCurrentPageUsers = 1;
+            const influencerItemsPerPageUsers = 10; // Keeping 10 items per page for user management
+            const influencerTotalPagesUsers = Math.ceil(influencerRowsUsers.length / influencerItemsPerPageUsers);
+
+            // Add pagination controls for influencer users table
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination-container mt-3';
+            paginationContainer.innerHTML = `
+                <div class="pagination justify-content-center">
+                    <button class="btn btn-sm btn-outline-primary prev-btn" id="influencer-users-prev" disabled>&laquo; Previous</button>
+                    <span class="mx-3 pagination-info" id="influencer-users-page-info">Page <span id="influencer-users-current-page">1</span> of <span id="influencer-users-total-pages">${influencerTotalPagesUsers}</span></span>
+                    <button class="btn btn-sm btn-outline-primary next-btn" id="influencer-users-next">Next &raquo;</button>
+                </div>
+            `;
+
+            // Insert after the table
+            influencerTableUsers.parentNode.appendChild(paginationContainer);
+
+            const influencerPrevBtnUsers = document.getElementById('influencer-users-prev');
+            const influencerNextBtnUsers = document.getElementById('influencer-users-next');
+            const influencerCurrentPageSpanUsers = document.getElementById('influencer-users-current-page');
+
+            function paginateInfluencersUsers(page) {
+                // Hide all rows
+                influencerRowsUsers.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Calculate start and end index
+                const startIndex = (page - 1) * influencerItemsPerPageUsers;
+                const endIndex = startIndex + influencerItemsPerPageUsers;
+
+                // Display only rows for current page
+                for (let i = startIndex; i < endIndex && i < influencerRowsUsers.length; i++) {
+                    influencerRowsUsers[i].style.display = '';
+                }
+
+                // Update current page indicator
+                if (influencerCurrentPageSpanUsers) {
+                    influencerCurrentPageSpanUsers.textContent = page.toString();
+                }
+
+                // Update button states
+                if (influencerPrevBtnUsers) {
+                    influencerPrevBtnUsers.disabled = page === 1;
+                }
+
+                if (influencerNextBtnUsers) {
+                    influencerNextBtnUsers.disabled = page === influencerTotalPagesUsers || influencerTotalPagesUsers === 0;
+                }
+
+                influencerCurrentPageUsers = page;
+            }
+
+            // Initialize pagination
+            paginateInfluencersUsers(1);
+
+            // Add event listeners for navigation
+            if (influencerPrevBtnUsers) {
+                influencerPrevBtnUsers.addEventListener('click', function () {
+                    if (influencerCurrentPageUsers > 1) {
+                        paginateInfluencersUsers(influencerCurrentPageUsers - 1);
+                    }
+                });
+            }
+
+            if (influencerNextBtnUsers) {
+                influencerNextBtnUsers.addEventListener('click', function () {
+                    if (influencerCurrentPageUsers < influencerTotalPagesUsers) {
+                        paginateInfluencersUsers(influencerCurrentPageUsers + 1);
+                    }
+                });
+            }
+
+            // Search functionality for influencer users
+            const influencerSearchUsers = document.getElementById('influencer-search-users');
+            if (influencerSearchUsers) {
+                influencerSearchUsers.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const filteredRows = influencerRowsUsers.filter(row => {
+                        const text = row.textContent.toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        return isVisible;
+                    });
+
+                    // Calculate new total pages
+                    const newTotalPages = Math.ceil(filteredRows.length / influencerItemsPerPageUsers);
+                    document.getElementById('influencer-users-total-pages').textContent = newTotalPages.toString();
+
+                    // Hide all rows first
+                    influencerRowsUsers.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Show only filtered rows for current page
+                    const startIndex = 0;
+                    const endIndex = startIndex + influencerItemsPerPageUsers;
+                    for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                        filteredRows[i].style.display = '';
+                    }
+
+                    // Reset to page 1
+                    influencerCurrentPageSpanUsers.textContent = '1';
+                    influencerCurrentPageUsers = 1;
+
+                    // Update button states
+                    influencerPrevBtnUsers.disabled = true;
+                    influencerNextBtnUsers.disabled = newTotalPages <= 1;
+                });
+            }
+        }
+
+        // User Management - Sponsor table pagination
+        const sponsorTableUsers = document.getElementById('sponsor-table-users');
+        if (sponsorTableUsers) {
+            const sponsorRowsUsers = Array.from(sponsorTableUsers.querySelectorAll('tbody tr'));
+            let sponsorCurrentPageUsers = 1;
+            const sponsorItemsPerPageUsers = 10; // Keeping 10 items per page for user management
+            const sponsorTotalPagesUsers = Math.ceil(sponsorRowsUsers.length / sponsorItemsPerPageUsers);
+
+            // Add pagination controls for sponsor users table
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination-container mt-3';
+            paginationContainer.innerHTML = `
+                <div class="pagination justify-content-center">
+                    <button class="btn btn-sm btn-outline-success prev-btn" id="sponsor-users-prev" disabled>&laquo; Previous</button>
+                    <span class="mx-3 pagination-info" id="sponsor-users-page-info">Page <span id="sponsor-users-current-page">1</span> of <span id="sponsor-users-total-pages">${sponsorTotalPagesUsers}</span></span>
+                    <button class="btn btn-sm btn-outline-success next-btn" id="sponsor-users-next">Next &raquo;</button>
+                </div>
+            `;
+
+            // Insert after the table
+            sponsorTableUsers.parentNode.appendChild(paginationContainer);
+
+            const sponsorPrevBtnUsers = document.getElementById('sponsor-users-prev');
+            const sponsorNextBtnUsers = document.getElementById('sponsor-users-next');
+            const sponsorCurrentPageSpanUsers = document.getElementById('sponsor-users-current-page');
+
+            function paginateSponsorsUsers(page) {
+                // Hide all rows
+                sponsorRowsUsers.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Calculate start and end index
+                const startIndex = (page - 1) * sponsorItemsPerPageUsers;
+                const endIndex = startIndex + sponsorItemsPerPageUsers;
+
+                // Display only rows for current page
+                for (let i = startIndex; i < endIndex && i < sponsorRowsUsers.length; i++) {
+                    sponsorRowsUsers[i].style.display = '';
+                }
+
+                // Update current page indicator
+                if (sponsorCurrentPageSpanUsers) {
+                    sponsorCurrentPageSpanUsers.textContent = page.toString();
+                }
+
+                // Update button states
+                if (sponsorPrevBtnUsers) {
+                    sponsorPrevBtnUsers.disabled = page === 1;
+                }
+
+                if (sponsorNextBtnUsers) {
+                    sponsorNextBtnUsers.disabled = page === sponsorTotalPagesUsers || sponsorTotalPagesUsers === 0;
+                }
+
+                sponsorCurrentPageUsers = page;
+            }
+
+            // Initialize pagination
+            paginateSponsorsUsers(1);
+
+            // Add event listeners for navigation
+            if (sponsorPrevBtnUsers) {
+                sponsorPrevBtnUsers.addEventListener('click', function () {
+                    if (sponsorCurrentPageUsers > 1) {
+                        paginateSponsorsUsers(sponsorCurrentPageUsers - 1);
+                    }
+                });
+            }
+
+            if (sponsorNextBtnUsers) {
+                sponsorNextBtnUsers.addEventListener('click', function () {
+                    if (sponsorCurrentPageUsers < sponsorTotalPagesUsers) {
+                        paginateSponsorsUsers(sponsorCurrentPageUsers + 1);
+                    }
+                });
+            }
+
+            // Search functionality for sponsor users
+            const sponsorSearchUsers = document.getElementById('sponsor-search-users');
+            if (sponsorSearchUsers) {
+                sponsorSearchUsers.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const filteredRows = sponsorRowsUsers.filter(row => {
+                        const text = row.textContent.toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        return isVisible;
+                    });
+
+                    // Calculate new total pages
+                    const newTotalPages = Math.ceil(filteredRows.length / sponsorItemsPerPageUsers);
+                    document.getElementById('sponsor-users-total-pages').textContent = newTotalPages.toString();
+
+                    // Hide all rows first
+                    sponsorRowsUsers.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Show only filtered rows for current page
+                    const startIndex = 0;
+                    const endIndex = startIndex + sponsorItemsPerPageUsers;
+                    for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                        filteredRows[i].style.display = '';
+                    }
+
+                    // Reset to page 1
+                    sponsorCurrentPageSpanUsers.textContent = '1';
+                    sponsorCurrentPageUsers = 1;
+
+                    // Update button states
+                    sponsorPrevBtnUsers.disabled = true;
+                    sponsorNextBtnUsers.disabled = newTotalPages <= 1;
+                });
+            }
+        }
+
+        // Campaign Management - Active Campaigns Pagination
+        const campaignTableActive = document.getElementById('campaign-table');
+        if (campaignTableActive) {
+            const campaignRowsActive = Array.from(campaignTableActive.querySelectorAll('tbody tr'));
+            let campaignCurrentPageActive = 1;
+            const campaignItemsPerPageActive = 10; // Keeping 10 items per page for campaign management
+            const campaignTotalPagesActive = Math.ceil(campaignRowsActive.length / campaignItemsPerPageActive);
+
+            // Add pagination controls for active campaigns table
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination-container mt-3';
+            paginationContainer.innerHTML = `
+                <div class="pagination justify-content-center">
+                    <button class="btn btn-sm btn-outline-primary prev-btn" id="campaign-active-prev" disabled>&laquo; Previous</button>
+                    <span class="mx-3 pagination-info" id="campaign-active-page-info">Page <span id="campaign-active-current-page">1</span> of <span id="campaign-active-total-pages">${campaignTotalPagesActive}</span></span>
+                    <button class="btn btn-sm btn-outline-primary next-btn" id="campaign-active-next">Next &raquo;</button>
+                </div>
+            `;
+
+            // Insert after the table
+            if (campaignRowsActive.length > campaignItemsPerPageActive) {
+                campaignTableActive.parentNode.appendChild(paginationContainer);
+
+                const campaignPrevBtnActive = document.getElementById('campaign-active-prev');
+                const campaignNextBtnActive = document.getElementById('campaign-active-next');
+                const campaignCurrentPageSpanActive = document.getElementById('campaign-active-current-page');
+
+                function paginateCampaignsActive(page) {
+                    // Hide all rows
+                    campaignRowsActive.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Calculate start and end index
+                    const startIndex = (page - 1) * campaignItemsPerPageActive;
+                    const endIndex = startIndex + campaignItemsPerPageActive;
+
+                    // Display only rows for current page
+                    for (let i = startIndex; i < endIndex && i < campaignRowsActive.length; i++) {
+                        campaignRowsActive[i].style.display = '';
+                    }
+
+                    // Update current page indicator
+                    if (campaignCurrentPageSpanActive) {
+                        campaignCurrentPageSpanActive.textContent = page.toString();
+                    }
+
+                    // Update button states
+                    if (campaignPrevBtnActive) {
+                        campaignPrevBtnActive.disabled = page === 1;
+                    }
+
+                    if (campaignNextBtnActive) {
+                        campaignNextBtnActive.disabled = page === campaignTotalPagesActive || campaignTotalPagesActive === 0;
+                    }
+
+                    campaignCurrentPageActive = page;
+                }
+
+                // Initialize pagination
+                paginateCampaignsActive(1);
+
+                // Add event listeners for navigation
+                if (campaignPrevBtnActive) {
+                    campaignPrevBtnActive.addEventListener('click', function () {
+                        if (campaignCurrentPageActive > 1) {
+                            paginateCampaignsActive(campaignCurrentPageActive - 1);
+                        }
+                    });
+                }
+
+                if (campaignNextBtnActive) {
+                    campaignNextBtnActive.addEventListener('click', function () {
+                        if (campaignCurrentPageActive < campaignTotalPagesActive) {
+                            paginateCampaignsActive(campaignCurrentPageActive + 1);
+                        }
+                    });
+                }
+
+                // Search functionality for active campaigns
+                const campaignSearch = document.getElementById('campaign-search');
+                if (campaignSearch) {
+                    campaignSearch.addEventListener('input', function () {
+                        const searchTerm = this.value.toLowerCase();
+                        const filteredRows = campaignRowsActive.filter(row => {
+                            const text = row.textContent.toLowerCase();
+                            const isVisible = text.includes(searchTerm);
+                            return isVisible;
+                        });
+
+                        // Calculate new total pages
+                        const newTotalPages = Math.ceil(filteredRows.length / campaignItemsPerPageActive);
+                        document.getElementById('campaign-active-total-pages').textContent = newTotalPages.toString();
+
+                        // Hide all rows first
+                        campaignRowsActive.forEach(row => {
+                            row.style.display = 'none';
+                        });
+
+                        // Show only filtered rows for current page
+                        const startIndex = 0;
+                        const endIndex = startIndex + campaignItemsPerPageActive;
+                        for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                            filteredRows[i].style.display = '';
+                        }
+
+                        // Reset to page 1
+                        campaignCurrentPageSpanActive.textContent = '1';
+                        campaignCurrentPageActive = 1;
+
+                        // Update button states
+                        campaignPrevBtnActive.disabled = true;
+                        campaignNextBtnActive.disabled = newTotalPages <= 1;
+                    });
+                }
+            }
+        }
+
+        // Add similar pagination for pending and completed campaigns tables
+        // This will be dynamically added when the user switches to those tabs
+        document.querySelectorAll('.nav-tabs a[data-toggle="tab"]').forEach(function (tab) {
+            tab.addEventListener('shown.bs.tab', function (e) {
+                // Check if it's the pending campaigns tab
+                if (e.target.getAttribute('href') === '#pending-campaigns') {
+                    const campaignTablePending = document.querySelector('#pending-campaigns table');
+                    setupCampaignPagination(campaignTablePending, 'pending');
+                }
+                // Check if it's the completed campaigns tab
+                else if (e.target.getAttribute('href') === '#completed') {
+                    const campaignTableCompleted = document.querySelector('#completed table');
+                    setupCampaignPagination(campaignTableCompleted, 'completed');
+                }
+            });
+        });
+
+        function setupCampaignPagination(table, type) {
+            if (!table) return;
+
+            // Check if pagination is already added
+            const existingPagination = table.parentNode.querySelector('.pagination-container');
+            if (existingPagination) return;
+
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const itemsPerPage = 10; // Keeping 10 items per page for campaign management
+            const totalPages = Math.ceil(rows.length / itemsPerPage);
+            let currentPage = 1;
+
+            // Add pagination controls
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination-container mt-3';
+            const buttonColorClass = type === 'pending' ? 'warning' : 'success';
+            paginationContainer.innerHTML = `
+                <div class="pagination justify-content-center">
+                    <button class="btn btn-sm btn-outline-${buttonColorClass} prev-btn" id="campaign-${type}-prev" disabled>&laquo; Previous</button>
+                    <span class="mx-3 pagination-info" id="campaign-${type}-page-info">Page <span id="campaign-${type}-current-page">1</span> of <span id="campaign-${type}-total-pages">${totalPages}</span></span>
+                    <button class="btn btn-sm btn-outline-${buttonColorClass} next-btn" id="campaign-${type}-next">Next &raquo;</button>
+                </div>
+            `;
+
+            // Only add pagination if there are more rows than items per page
+            if (rows.length > itemsPerPage) {
+                table.parentNode.appendChild(paginationContainer);
+
+                const prevBtn = document.getElementById(`campaign-${type}-prev`);
+                const nextBtn = document.getElementById(`campaign-${type}-next`);
+                const currentPageSpan = document.getElementById(`campaign-${type}-current-page`);
+
+                function paginateCampaigns(page) {
+                    // Hide all rows
+                    rows.forEach(row => {
+                        row.style.display = 'none';
+                    });
+
+                    // Calculate start and end index
+                    const startIndex = (page - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+
+                    // Display only rows for current page
+                    for (let i = startIndex; i < endIndex && i < rows.length; i++) {
+                        rows[i].style.display = '';
+                    }
+
+                    // Update current page indicator
+                    if (currentPageSpan) {
+                        currentPageSpan.textContent = page.toString();
+                    }
+
+                    // Update button states
+                    if (prevBtn) {
+                        prevBtn.disabled = page === 1;
+                    }
+
+                    if (nextBtn) {
+                        nextBtn.disabled = page === totalPages || totalPages === 0;
+                    }
+
+                    currentPage = page;
+                }
+
+                // Initialize pagination
+                paginateCampaigns(1);
+
+                // Add event listeners for navigation
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function () {
+                        if (currentPage > 1) {
+                            paginateCampaigns(currentPage - 1);
+                        }
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function () {
+                        if (currentPage < totalPages) {
+                            paginateCampaigns(currentPage + 1);
+                        }
+                    });
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Add this script at the bottom of the admin_home.html file to power the charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Common chart options to prevent vertical stretching
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        };
+
+        // Activity Chart
+        const activityCtx = document.getElementById('activityChart');
+        if (activityCtx) {
+            const activityChart = new Chart(activityCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Campaigns',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        tension: 0.1,
+                        fill: false
+                    }, {
+                        label: 'Influencers',
+                        data: [7, 11, 5, 8, 3, 7],
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // User Distribution Chart
+        const distributionCtx = document.getElementById('userDistributionChart');
+        if (distributionCtx) {
+            const userDistributionChart = new Chart(distributionCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Influencers', 'Sponsors', 'Admins'],
+                    datasets: [{
+                        data: [70, 25, 5],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            const revenueChart = new Chart(revenueCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{
+                        label: 'Platform Revenue',
+                        data: [12500, 19200, 16800, 24100],
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Campaign Performance Chart - Improved spider chart
+        const performanceCtx = document.getElementById('campaignPerformanceChart');
+        if (performanceCtx) {
+            const campaignPerformanceChart = new Chart(performanceCtx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Reach', 'Engagement', 'Conversion', 'ROI', 'Brand Awareness'],
+                    datasets: [{
+                        label: 'Average Performance',
+                        data: [80, 65, 45, 70, 85],
+                        backgroundColor: 'rgba(153, 102, 255, 0.4)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(153, 102, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(153, 102, 255, 1)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            tension: 0.1
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+
+        // User Growth Chart
+        const growthCtx = document.getElementById('userGrowthChart');
+        if (growthCtx) {
+            const userGrowthChart = new Chart(growthCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Users',
+                        data: [45, 59, 80, 81, 56, 95],
+                        fill: false,
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // User Retention Chart
+        const retentionCtx = document.getElementById('userRetentionChart');
+        if (retentionCtx) {
+            const userRetentionChart = new Chart(retentionCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'User Retention',
+                        data: [100, 85, 72, 65],
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Demographics Chart
+        const demographicsCtx = document.getElementById('demographicsChart');
+        if (demographicsCtx) {
+            const demographicsChart = new Chart(demographicsCtx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['18-24', '25-34', '35-44', '45+'],
+                    datasets: [{
+                        data: [25, 40, 20, 15],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    ...commonOptions
+                }
+            });
+        }
+
+        // Security Gauge Chart
+        const securityGauge = document.getElementById('securityGauge');
+        if (securityGauge) {
+            const securityGaugeChart = new Chart(securityGauge.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Score', 'Remaining'],
+                    datasets: [{
+                        data: [94, 6],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.9)',  // Green for score
+                            'rgba(200, 200, 200, 0.3)' // Gray for remaining
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '75%',
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

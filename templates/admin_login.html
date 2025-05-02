@@ -1,28 +1,52 @@
 {% extends "layout_login.html" %}
 
 {% block style %}
-
-<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
 {% endblock style %}
 
-{% block title %}Admin Login Page{% endblock title %}
+{% block title %}Admin Login - InfluConnect{% endblock title %}
 
 {% block content %}
-
-
-<h1>Admin Login Page</h1> 
-<div class="body">
-    
-<form method="post">
-    <div class="mb-3">
-        <label for="UserName" class="form-label">Admin Name</label>
-        <input type="text" name="name"  class="form-control" id="UserName" >
+<div class="auth-header">
+    <div class="logo">
+        <i class="fas fa-user-tie fa-3x"></i>
     </div>
-    <div class="mb-3">
-        <label for="passaword" class="form-label">Password</label>
-        <input type="password" name="passaword" class="form-control" id="passaword">
+    <h2>Admin Login</h2>
+    <p>Access the administration dashboard</p>
+</div>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-user"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Admin Username" name="username" required>
+        </div>
     </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-lock"></i>
+            </span>
+            <input type="password" class="form-control" placeholder="Password" name="password" required>
+        </div>
+    </div>
+
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe">
+        <label class="form-check-label" for="rememberMe">Remember me</label>
+        <a href="#" class="float-end">Forgot password?</a>
+    </div>
+
+    <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+    </div>
 </form>
+
+<div class="auth-footer mt-4">
+    <p class="text-muted">Admin access is restricted to authorized personnel only.</p>
 </div>
 {% endblock content %}

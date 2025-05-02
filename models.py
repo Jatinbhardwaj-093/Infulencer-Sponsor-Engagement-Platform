@@ -1,15 +1,9 @@
 from flask import Flask, render_template, request, redirect
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-# Remove the import from app and use the db instance passed to init_app later
-from flask_migrate import Migrate
-
-# Create db instance to be initialized later
-db = SQLAlchemy()
-
-# We'll initialize migrate in app.py instead
-# migrate = Migrate(app, db, render_as_batch=True)
+# Import db from our centralized db.py file
+from db import db
+import sqlalchemy as sa
 
 class Admin(db.Model):
     """Admin user model for platform administration"""
@@ -34,6 +28,7 @@ class Influencer(db.Model):
     __tablename__ = 'influencer'
     influencer_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    # Make password column nullable=False - security fix
     password = db.Column(db.String(128), nullable=False)
     genre = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)

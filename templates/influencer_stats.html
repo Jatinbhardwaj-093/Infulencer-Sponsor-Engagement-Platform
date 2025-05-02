@@ -1,207 +1,574 @@
-{% extends 'layout_admin.html' %}
+{% extends "layout_Influencer.html" %}
 
-{% block title %}
-    Influencer Stats    
+{% block title %}Your Performance Stats{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
-{% block style %}
-<link rel="stylesheet" href="static/stats.css">
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Influencer Management</li>
+{% endblock %}
+
+{% block page_title %}Influencer Statistics{% endblock %}
+
+{% block page_action %}
+<div class="d-none d-sm-inline-block">
+    <button class="btn btn-sm btn-primary shadow-sm" id="downloadReport">
+        <i class="fas fa-download fa-sm text-white-50 me-1"></i> Generate Report
+    </button>
+</div>
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="text-dark mb-4">Your Performance Analytics</h2>
 
-<div class="grid">
-    <div class="chart1 inner-content">
-        <canvas id="platformChart"></canvas>
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Campaigns
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaigns|default(3) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Earnings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_earnings|default('12,450') }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Deliverable Completion
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">85%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 85%"
+                                            aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Average Engagement
+                                Rate</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">8.7%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart2 inner-content">
-        <canvas id ="flag"></canvas>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Engagement Performance Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Campaign Performance (Last 6 Months)</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Export Options:</div>
+                            <a class="dropdown-item" href="#">Save as PNG</a>
+                            <a class="dropdown-item" href="#">Export Data (CSV)</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">View Full Report</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="campaignPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platform Distribution Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Engagement by Platform</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Chart Options:</div>
+                            <a class="dropdown-item active" href="#">By Engagement</a>
+                            <a class="dropdown-item" href="#">By Revenue</a>
+                            <a class="dropdown-item" href="#">By Campaign Count</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="platformDistributionChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> Instagram
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> YouTube
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-info"></i> TikTok
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-warning"></i> Twitter
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart3 inner-content">
-        <canvas id="nicheChart"></canvas>
+
+    <!-- Content Row -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <!-- Audience Demographics -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Your Audience Demographics</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="small font-weight-bold">Age 18-24 <span class="float-right">35%</span></h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 35%" aria-valuenow="35"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Age 25-34 <span class="float-right">40%</span></h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 40%" aria-valuenow="40"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Age 35-44 <span class="float-right">20%</span></h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 20%" aria-valuenow="20"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <h4 class="small font-weight-bold">Age 45+ <span class="float-right">5%</span></h4>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 5%" aria-valuenow="5"
+                            aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Growth Trends -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Follower Growth</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="followerGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <!-- Content Performance -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Performing Content</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Campaign</th>
+                                    <th>Platform</th>
+                                    <th>Engagement</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Summer Fashion Line</td>
+                                    <td>Instagram</td>
+                                    <td>12.4K</td>
+                                    <td><span class="badge badge-success">High</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Tech Gadget Review</td>
+                                    <td>YouTube</td>
+                                    <td>45.2K</td>
+                                    <td><span class="badge badge-success">High</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Fitness Challenge</td>
+                                    <td>TikTok</td>
+                                    <td>32.8K</td>
+                                    <td><span class="badge badge-warning">Medium</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Beauty Products</td>
+                                    <td>Instagram</td>
+                                    <td>8.6K</td>
+                                    <td><span class="badge badge-warning">Medium</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Travel Vlog</td>
+                                    <td>YouTube</td>
+                                    <td>22.1K</td>
+                                    <td><span class="badge badge-success">High</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Breakdown -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Engagement Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="engagementBreakdownChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="info">
-        <h1>Influencer Stats</h1>
-        <div class="information">
-            <p>Total Influencers: {{influencer[0]}}</p>
-            <p>Different Niche: {{influencer[1]}}</p>
-            <p>Different Platform: {{influencer[2]}}</p>
-            <p>Total Flagged: {{influencer[3]}}</p>
-            <p>Ethical Influencer: {{influencer[4]}}</p>
-            <p>Ad requests by Influencer: {{influencer[5]}}</p>
+
+    <!-- Upcoming Campaign Analytics -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Performance Insights</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body text-center p-4 p-lg-5">
+                                    <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i
+                                            class="fas fa-chart-line"></i></div>
+                                    <h2 class="fs-4 fw-bold">Growth Opportunity</h2>
+                                    <p class="mb-0">Based on your engagement metrics, beauty and lifestyle content has
+                                        shown 25% higher engagement compared to other categories.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body text-center p-4 p-lg-5">
+                                    <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i
+                                            class="fas fa-calendar-check"></i></div>
+                                    <h2 class="fs-4 fw-bold">Optimal Posting Time</h2>
+                                    <p class="mb-0">Your audience is most active between 6PM-8PM on weekdays, with 32%
+                                        higher engagement during these hours.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card bg-light border-0 h-100">
+                                <div class="card-body text-center p-4 p-lg-5">
+                                    <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i
+                                            class="fas fa-map-marker-alt"></i></div>
+                                    <h2 class="fs-4 fw-bold">Geographic Reach</h2>
+                                    <p class="mb-0">Your content resonates most with audiences in Urban centers,
+                                        particularly New York, Los Angeles, and Chicago.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-
-
-<Script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Import Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-        // setup
-        
-        const data1 = {
-            labels: {{labels|safe}},
-            datasets: [
-                {
-                    label: 'Influencer by Niche',
-                    data: {{data|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                    ],
-                    borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                    borderwidth: 1
-                }
-            ]
-        };
-
-        const data2 = {
-            labels: {{labels2|safe}},
-            datasets: [
-                {
-                    label: 'Influencer by Platform',
-                    data: {{data2|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                hoverOffset: 4
-                }
-            ]
-        };
-        const data3 = {
-            labels: {{labels3|safe}},
-            datasets: [
-                {
-                    label: 'Influencer by Platform',
-                    data: {{data3|safe}},
-                    backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
-                    'rgb(255, 205, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
-                    ],
-                hoverOffset: 4
-                }
-            ]
-        };
-
-        // config
-        const config = {
-            type: 'bar',
-            data: data1,
+    document.addEventListener('DOMContentLoaded', function () {
+        // Campaign Performance Chart
+        const ctxCampaign = document.getElementById('campaignPerformanceChart').getContext('2d');
+        const campaignChart = new Chart(ctxCampaign, {
+            type: 'line',
+            data: {
+                labels: ['December', 'January', 'February', 'March', 'April', 'May'],
+                datasets: [{
+                    label: 'Engagement Rate (%)',
+                    data: [6.8, 7.2, 7.5, 8.1, 8.5, 8.7],
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Conversion Rate (%)',
+                    data: [3.2, 3.5, 3.8, 4.2, 4.5, 4.7],
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                    pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Click Through Rate (%)',
+                    data: [4.5, 5.2, 5.8, 6.3, 6.8, 7.2],
+                    borderColor: 'rgba(246, 194, 62, 1)',
+                    backgroundColor: 'rgba(246, 194, 62, 0.05)',
+                    pointBackgroundColor: 'rgba(246, 194, 62, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
             options: {
-
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Influencer by Niche',
-                        font: {
-                            size: 20
-                            
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
                         }
                     },
+                    y: {
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleColor: '#6e707e',
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Platform Distribution Chart
+        const ctxPlatform = document.getElementById('platformDistributionChart').getContext('2d');
+        const platformChart = new Chart(ctxPlatform, {
+            type: 'doughnut',
+            data: {
+                labels: ['Instagram', 'YouTube', 'TikTok', 'Twitter'],
+                datasets: [{
+                    data: [45, 30, 20, 5],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
+                    hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
                     legend: {
                         display: false
                     },
-                    
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                    }
                 }
             },
-        };
-        const config2 = {
-            type: 'doughnut',
-            data: data2,
+        });
+
+        // Follower Growth Chart
+        const ctxFollower = document.getElementById('followerGrowthChart').getContext('2d');
+        const followerChart = new Chart(ctxFollower, {
+            type: 'line',
+            data: {
+                labels: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Followers',
+                    data: [12000, 14500, 16800, 19200, 22500, 25800, 28400],
+                    fill: false,
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    backgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    tension: 0.3
+                }]
+            },
             options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Influencer by Platform',
-                        font: {
-                            size: 20
-                            
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            callback: function (value) {
+                                if (value >= 1000) {
+                                    return (value / 1000) + 'k';
+                                }
+                                return value;
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
                         }
                     },
-                    legend: {
-                        position: 'top',
-                    },
-                    
-                }
-            },
-        };
-        const config3 = {
-            type: 'doughnut',
-            data: data3,
-            options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Influencer by Flag condition',
-                        font: {
-                            size: 20
-                            
+                    x: {
+                        grid: {
+                            display: false
                         }
-                    },
+                    }
+                },
+                plugins: {
                     legend: {
-                        position: 'top',
-                    },
-                    
+                        display: false
+                    }
                 }
+            }
+        });
+
+        // Engagement Breakdown Chart
+        const ctxEngagement = document.getElementById('engagementBreakdownChart').getContext('2d');
+        const engagementChart = new Chart(ctxEngagement, {
+            type: 'bar',
+            data: {
+                labels: ['Likes', 'Comments', 'Shares', 'Saves', 'Clicks'],
+                datasets: [{
+                    label: 'Average per Post',
+                    data: [1850, 320, 480, 275, 620],
+                    backgroundColor: [
+                        'rgba(78, 115, 223, 0.8)',
+                        'rgba(28, 200, 138, 0.8)',
+                        'rgba(246, 194, 62, 0.8)',
+                        'rgba(54, 185, 204, 0.8)',
+                        'rgba(231, 74, 59, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
             },
-        };
-
-    
-        
-        // rendering
-        const niche_ctx = document.getElementById('nicheChart').getContext('2d');
-        const nicheChart = new Chart(niche_ctx, config);
-        
-        const platform_ctx = document.getElementById('platformChart').getContext('2d');
-        const platformChart = new Chart(platform_ctx, config2);
-        
-        const flag_ctx = document.getElementById('flag').getContext('2d');
-        const flagChart = new Chart(flag_ctx, config3);
-
-        
-
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}
