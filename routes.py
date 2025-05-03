@@ -108,10 +108,10 @@ def home():
         
         for campaign in campaigns:
             sponsor = Sponsor.query.get(campaign.sponsor_id)
-            # Count all influencer requests for this campaign instead of filtering by status
+            # Count unique influencers associated with this campaign through sponsor requests
             try:
-                # Just count total sponsor requests for this campaign without filtering by influencer_call
-                influencer_count = db.session.query(db.func.count(SponsorRequest.sponsor_request_id)).filter(
+                # Count distinct influencers that have been requested for this campaign
+                influencer_count = db.session.query(db.func.count(db.distinct(SponsorRequest.influencer_id))).filter(
                     SponsorRequest.campaign_id == campaign.campaign_id
                 ).scalar() or 0
                 

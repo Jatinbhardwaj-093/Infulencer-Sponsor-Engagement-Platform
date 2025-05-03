@@ -602,7 +602,7 @@
                                 <tbody>
                                     {% set active_found = false %}
                                     {% for campaign in campaigns %}
-                                    {% if campaign.status == 'active' %}
+                                    {% if campaign.status.lower() == 'active' %}
                                     {% set active_found = true %}
                                     <tr>
                                         <td>{{campaign.campaign_id}}</td>
@@ -659,7 +659,7 @@
                                 <tbody>
                                     {% set pending_found = false %}
                                     {% for campaign in campaigns %}
-                                    {% if campaign.status == 'pending' %}
+                                    {% if campaign.status.lower() == 'pending' %}
                                     {% set pending_found = true %}
                                     <tr>
                                         <td>{{campaign.campaign_id}}</td>
@@ -711,7 +711,7 @@
                                 <tbody>
                                     {% set completed_found = false %}
                                     {% for campaign in campaigns %}
-                                    {% if campaign.status == 'completed' %}
+                                    {% if campaign.status.lower() == 'completed' %}
                                     {% set completed_found = true %}
                                     <tr>
                                         <td>{{campaign.campaign_id}}</td>
