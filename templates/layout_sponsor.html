@@ -3,199 +3,663 @@
 {% block title %}Sponsor Dashboard - InfluConnect{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
+    :root {
+        --sidebar-width: 250px;
+        --sidebar-collapsed-width: 70px;
+        --sponsor-primary: #2e86de;
+        --sponsor-secondary: #54a0ff;
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        overflow-x: hidden;
+        background-color: #f8f9fc;
+    }
+
+    /* Sidebar Styling */
     .sidebar {
         min-height: 100vh;
         position: fixed;
         top: 0;
         bottom: 0;
         left: 0;
-        width: 250px;
+        width: var(--sidebar-width);
         z-index: 100;
         padding: 0;
-        background: linear-gradient(135deg, #1cc88a 0%, #169b6b 100%);
+        background: var(--sponsor-gradient);
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transition: all var(--transition-speed) ease;
+    }
+
+    .sidebar.collapsed {
+        width: var(--sidebar-collapsed-width);
     }
 
     .sidebar-brand {
-        padding: 1.5rem 1.5rem;
+        padding: 1.5rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sidebar-brand a {
+        display: flex;
+        align-items: center;
+    }
+
+    .sidebar-toggle {
+        color: white;
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-item {
+        position: relative;
+        margin: 0.25rem 0;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: rgba(255, 255, 255, 0.8) !important;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        position: relative;
+        border-radius: 0.5rem;
+        margin: 0 0.5rem;
+    }
+
+    .nav-link:hover {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    .nav-link.active {
+        color: #fff !important;
+        background-color: rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+    }
+
+    .nav-link i,
+    .nav-link .bi {
+        margin-right: 0.75rem;
+        min-width: 1.25rem;
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .sidebar.collapsed .menu-text,
+    .sidebar.collapsed .sidebar-heading,
+    .sidebar.collapsed .sidebar-brand span,
+    .sidebar.collapsed hr,
+    .sidebar.collapsed .sidebar-toggle span {
+        display: none;
+    }
+
+    .sidebar.collapsed .nav-link {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+
+    .sidebar.collapsed .nav-link i,
+    .sidebar.collapsed .nav-link .bi {
+        margin-right: 0;
+        font-size: 1.2rem;
+    }
+
+    .sidebar.collapsed .nav-link:hover {
+        transform: scale(1.1);
+    }
+
+    .sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+    }
+
+    .sidebar.collapsed~.content {
+        margin-left: var(--sidebar-collapsed-width);
+    }
+
+    /* Tooltip for collapsed sidebar */
+    .sidebar.collapsed .nav-link .tooltip {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+        z-index: 1000;
+    }
+
+    .sidebar.collapsed .nav-link:hover .tooltip {
+        opacity: 1;
+        left: calc(100% + 10px);
+    }
+
+    /* Content Area */
+    .content {
+        margin-left: var(--sidebar-width);
+        padding: 1.5rem;
+        transition: all var(--transition-speed) ease;
+    }
+
+    /* Top Navbar - Updated */
+    .top-navbar {
+        background-color: white;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Updated sidebar toggle button for top navbar */
+    .top-navbar .sidebar-toggle-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fc;
+        border: 1px solid #eaecf4;
+        color: #5a5c69;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .top-navbar .sidebar-toggle-btn:hover {
+        background-color: var(--sponsor-primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Updated navbar buttons styling */
+    .top-navbar .navbar-nav {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        gap: 12px;
+    }
+
+    .top-navbar .navbar-nav .nav-item .nav-link {
+        color: #5a5c69;
+        transition: all 0.2s;
+        padding: 0;
+        border-radius: 50%;
+        background-color: transparent;
+        position: relative;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .content {
-        margin-left: 250px;
-        padding: 1.5rem;
+    .top-navbar .navbar-nav .nav-item .nav-link:hover {
+        background-color: #edf3ff;
+        color: var(--sponsor-primary);
+        transform: translateY(-2px);
     }
 
-    .user-avatar {
-        width: 40px;
-        height: 40px;
+    .top-navbar .navbar-nav .nav-item .nav-link .bi {
+        font-size: 1.2rem;
+    }
+
+    /* Dropdown profile button */
+    .top-navbar .nav-link.dropdown-toggle {
+        background-color: #f8f9fc;
+        border-radius: 2rem;
+        padding: 0.35rem 0.75rem;
+        color: #5a5c69 !important;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        width: auto;
+        height: auto;
+    }
+
+    .top-navbar .nav-link.dropdown-toggle:hover {
+        background-color: #edf3ff;
+        color: var(--sponsor-primary) !important;
+        transform: translateY(-2px);
+    }
+
+    .top-navbar .nav-link.dropdown-toggle span {
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+
+    .top-navbar .dropdown-toggle::after {
+        vertical-align: middle;
+        margin-left: 0.5rem;
+    }
+
+    /* Improved dropdown menu */
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        animation: fadeInDropdown 0.2s ease;
+        min-width: 200px;
+        z-index: 1050;
+    }
+
+    @keyframes fadeInDropdown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdown-item {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        margin-bottom: 0.125rem;
+    }
+
+    .dropdown-item:hover {
+        background-color: #edf3ff;
+        color: var(--sponsor-primary);
+        transform: translateX(3px);
+    }
+
+    .dropdown-item i,
+    .dropdown-item .bi {
+        margin-right: 0.5rem;
+        width: 1.25rem;
+        text-align: center;
+        color: #5a5c69;
+    }
+
+    .dropdown-item:hover i,
+    .dropdown-item:hover .bi {
+        color: var(--sponsor-primary);
+    }
+
+    /* Notification Badge */
+    .notification-badge {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        width: 8px;
+        height: 8px;
+        background-color: #e74a3b;
         border-radius: 50%;
-        object-fit: cover;
     }
 
+    .notification-icon {
+        position: relative;
+    }
+
+    /* Count Badge */
+    .count-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(30%, -30%);
+        font-size: 0.65rem;
+        padding: 0.15rem 0.35rem;
+        background-color: #e74a3b;
+        color: white;
+        border-radius: 0.5rem;
+        border: 2px solid white;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
         .sidebar {
-            position: relative;
-            width: 100%;
-            min-height: auto;
+            transform: translateX(-100%);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
         }
 
         .content {
             margin-left: 0;
         }
+
+        .sidebar.collapsed~.content {
+            margin-left: 0;
+        }
+
+        .top-navbar .navbar-brand {
+            display: block;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* Logout Button */
+    .logout-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0.5rem;
+    }
+
+    .logout-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+
+    .sidebar.collapsed .logout-btn span {
+        display: none;
     }
 </style>
+{% block page_styles %}{% endblock %}
 {% endblock %}
 
 {% block content %}
 <div class="d-flex">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <a href="{{ url_for('sponsor.home') }}" class="text-white text-decoration-none">
-                <i class="fas fa-briefcase fa-2x me-2"></i>
-                <span class="fs-4 fw-bold">InfluConnect</span>
+                <i class="bi bi-briefcase-fill me-2"></i>
+                <span class="fs-5 fw-bold">InfluConnect</span>
             </a>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="bi bi-chevron-left"></i>
+                <span>Collapse</span>
+            </button>
         </div>
 
-        <hr class="sidebar-divider bg-white opacity-25">
+        <hr class="sidebar-divider bg-white opacity-25 mx-3">
 
         <div class="sidebar-heading text-uppercase text-white-50 px-3 py-2 small">Navigation</div>
 
-        <ul class="nav flex-column px-3">
+        <ul class="nav flex-column px-2 mb-4">
             <li class="nav-item">
-                <a class="nav-link text-white {% if request.endpoint == 'sponsor.home' %}active{% endif %}"
+                <a class="nav-link {% if request.endpoint == 'sponsor.home' %}active{% endif %}"
                     href="{{ url_for('sponsor.home') }}">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                    <i class="bi bi-grid-1x2"></i>
+                    <span class="menu-text">Dashboard</span>
+                    <span class="tooltip">Dashboard</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white {% if request.endpoint == 'sponsor.campaign' %}active{% endif %}"
+                <a class="nav-link {% if request.endpoint == 'sponsor.campaign' %}active{% endif %}"
                     href="{{ url_for('sponsor.campaign') }}">
-                    <i class="fas fa-fw fa-bullhorn"></i>
-                    <span>My Campaigns</span>
+                    <i class="bi bi-megaphone"></i>
+                    <span class="menu-text">My Campaigns</span>
+                    <span class="tooltip">My Campaigns</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white {% if request.endpoint == 'sponsor.create_campaign' %}active{% endif %}"
+                <a class="nav-link {% if request.endpoint == 'sponsor.create_campaign' %}active{% endif %}"
                     href="{{ url_for('sponsor.create_campaign') }}">
-                    <i class="fas fa-fw fa-plus-circle"></i>
-                    <span>Create Campaign</span>
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="menu-text">Create Campaign</span>
+                    <span class="tooltip">Create Campaign</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white {% if request.endpoint == 'sponsor.find_influencer' %}active{% endif %}"
+                <a class="nav-link {% if request.endpoint == 'sponsor.find_influencer' %}active{% endif %}"
                     href="{{ url_for('sponsor.find_influencer') }}">
-                    <i class="fas fa-fw fa-search"></i>
-                    <span>Find Influencers</span>
+                    <i class="bi bi-search"></i>
+                    <span class="menu-text">Find Influencers</span>
+                    <span class="tooltip">Find Influencers</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white {% if request.endpoint == 'sponsor.assigned_campaign' %}active{% endif %}"
+                <a class="nav-link {% if request.endpoint == 'sponsor.assigned_campaign' %}active{% endif %}"
                     href="{{ url_for('sponsor.assigned_campaign') }}">
-                    <i class="fas fa-fw fa-project-diagram"></i>
-                    <span>Active Partnerships</span>
+                    <i class="bi bi-diagram-3"></i>
+                    <span class="menu-text">Active Partnerships</span>
+                    <span class="tooltip">Active Partnerships</span>
                 </a>
             </li>
         </ul>
 
-        <hr class="sidebar-divider bg-white opacity-25">
+        <hr class="sidebar-divider bg-white opacity-25 mx-3">
 
         <div class="sidebar-heading text-uppercase text-white-50 px-3 py-2 small">Analytics</div>
 
-        <ul class="nav flex-column px-3">
+        <ul class="nav flex-column px-2">
             <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                    <i class="fas fa-fw fa-chart-line"></i>
-                    <span>Performance</span>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-graph-up"></i>
+                    <span class="menu-text">Performance</span>
+                    <span class="tooltip">Performance</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                    <i class="fas fa-fw fa-dollar-sign"></i>
-                    <span>ROI Analysis</span>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-cash-coin"></i>
+                    <span class="menu-text">ROI Analysis</span>
+                    <span class="tooltip">ROI Analysis</span>
                 </a>
             </li>
         </ul>
 
-        <hr class="sidebar-divider bg-white opacity-25">
-
-        <div class="mt-auto px-3 py-3">
-            <a class="btn btn-light w-100" href="{{ url_for('main.sponsor_logout') }}">
-                <i class="fas fa-sign-out-alt"></i> Logout
+        <div class="mt-auto px-3 py-3 text-center">
+            <a class="logout-btn w-100" href="{{ url_for('main.sponsor_logout') }}">
+                <i class="bi bi-box-arrow-right me-2"></i>
+                <span>Logout</span>
             </a>
         </div>
     </div>
 
     <!-- Content -->
     <div class="content w-100">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 shadow-sm">
-            <div class="container-fluid">
-                <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#topNavbar">
-                    <span class="navbar-toggler-icon"></span>
+        <!-- Top Navbar - Updated -->
+        <nav class="top-navbar">
+            <div class="d-flex align-items-center">
+                <!-- Mobile sidebar toggle -->
+                <button class="btn btn-link p-0 me-3 d-md-none" id="sidebarToggleTop">
+                    <i class="bi bi-list fs-4"></i>
                 </button>
 
-                <div class="collapse navbar-collapse" id="topNavbar">
-                    <form class="d-flex me-auto">
-                        <div class="input-group">
-                            <input class="form-control" type="search" placeholder="Search influencers..."
-                                aria-label="Search">
-                            <button class="btn btn-outline-success" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </form>
-
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item me-3">
-                            <a class="nav-link position-relative" href="#">
-                                <i class="fas fa-bell fa-lg"></i>
-                                <span
-                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    3+
-                                </span>
-                            </a>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown"
-                                role="button" data-bs-toggle="dropdown">
-                                <div
-                                    class="user-avatar bg-success d-flex align-items-center justify-content-center me-2">
-                                    <i class="fas fa-user text-white"></i>
-                                </div>
-                                <span>{{ session.sponsor_name }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user-edit me-2"></i>Edit
-                                        Profile</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="{{ url_for('main.sponsor_logout') }}"><i
-                                            class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
+                <!-- Desktop sidebar toggle - Updated -->
+                <button class="sidebar-toggle-btn d-none d-md-flex" id="topNavSidebarToggle">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
             </div>
+
+            <!-- Right-aligned nav items with improved spacing -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link position-relative notification-icon" href="#">
+                        <i class="bi bi-bell"></i>
+                        <div class="notification-badge"></div>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link position-relative notification-icon" href="#">
+                        <i class="bi bi-chat-left-dots"></i>
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if profile and profile != 'none' %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ profile.name) }}" alt="Profile"
+                            class="user-avatar me-2">
+                        {% else %}
+                        <div
+                            class="user-avatar bg-sponsor-primary d-flex align-items-center justify-content-center me-2">
+                            <i class="bi bi-building-fill text-white"></i>
+                        </div>
+                        {% endif %}
+                        <span class="d-none d-sm-inline">{{ session.sponsor_name }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-building-gear"></i>Company Profile
+                            </a></li>
+                        <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-gear"></i>Settings
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.sponsor_logout') }}">
+                                <i class="bi bi-box-arrow-right"></i>Logout
+                            </a></li>
+                    </ul>
+                </li>
+            </ul>
         </nav>
 
         <!-- Page Content -->
-        <div class="container-fluid">
-            {% block dashboard_content %}{% endblock %}
+        <div class="container-fluid fade-in">
+            {% block dashboard_content %}
+            {% endblock dashboard_content %}
         </div>
     </div>
 </div>
+
+<script>
+    // Improved sidebar toggle functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarToggleTop = document.getElementById('sidebarToggleTop');
+        const topNavSidebarToggle = document.getElementById('topNavSidebarToggle');
+
+        // Check if collapsed state is saved in localStorage
+        const sidebarCollapsed = localStorage.getItem('sponsor-sidebar-collapsed') === 'true';
+        if (sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+        }
+
+        // Toggle sidebar on button click with smoother animation
+        function toggleSidebar() {
+            sidebar.style.transition = 'all 0.3s ease';
+            sidebar.classList.toggle('collapsed');
+            // Save state to localStorage
+            localStorage.setItem('sponsor-sidebar-collapsed', sidebar.classList.contains('collapsed'));
+
+            // Update toggle button icons
+            if (sidebar.classList.contains('collapsed')) {
+                if (sidebarToggle) sidebarToggle.innerHTML = '<i class="bi bi-chevron-right"></i>';
+                if (topNavSidebarToggle) topNavSidebarToggle.innerHTML = '<i class="bi bi-layout-sidebar"></i>';
+            } else {
+                if (sidebarToggle) sidebarToggle.innerHTML = '<i class="bi bi-chevron-left"></i>';
+                if (topNavSidebarToggle) topNavSidebarToggle.innerHTML = '<i class="bi bi-layout-sidebar-inset"></i>';
+            }
+        }
+
+        // Desktop sidebar toggle
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        // Mobile sidebar toggle
+        if (sidebarToggleTop) {
+            sidebarToggleTop.addEventListener('click', function () {
+                sidebar.style.transition = 'transform 0.3s ease';
+                sidebar.classList.toggle('show');
+            });
+        }
+
+        // Desktop top navbar sidebar toggle
+        if (topNavSidebarToggle) {
+            topNavSidebarToggle.addEventListener('click', toggleSidebar);
+
+            // Initialize icon based on current state
+            if (sidebar.classList.contains('collapsed')) {
+                topNavSidebarToggle.innerHTML = '<i class="bi bi-layout-sidebar"></i>';
+            } else {
+                topNavSidebarToggle.innerHTML = '<i class="bi bi-layout-sidebar-inset"></i>';
+            }
+        }
+
+        // Hide sidebar when clicking outside on mobile
+        document.addEventListener('click', function (event) {
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickInsideToggle = sidebarToggleTop && sidebarToggleTop.contains(event.target);
+
+            if (window.innerWidth <= 768 && !isClickInsideSidebar && !isClickInsideToggle && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+
+        // Ensure dropdowns work correctly
+        const dropdowns = document.querySelectorAll('.dropdown-toggle');
+        dropdowns.forEach(dropdown => {
+            dropdown.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const menu = this.nextElementSibling;
+                const isOpen = menu.classList.contains('show');
+
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown-menu.show').forEach(openMenu => {
+                    if (openMenu !== menu) {
+                        openMenu.classList.remove('show');
+                    }
+                });
+
+                // Toggle current dropdown
+                menu.classList.toggle('show');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}

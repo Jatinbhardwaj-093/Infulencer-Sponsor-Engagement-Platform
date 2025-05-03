@@ -1,36 +1,67 @@
 {% extends 'layout_Influencer.html' %}
 
-{% block style %}
-
-    <link rel="stylesheet" href="static/sponsor_request.css">
-{% endblock %}
-
 {% block title %}
-    Influencer Request
+Campaign Request
 {% endblock %}
 
-{% block content %}
-<h1>Sponsor Request</h1>
-<form method="post">
-    <div class="box">
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='influencer_request.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
 
-        <div class="mb-3">
-        <label  class="form-label" for="id">Enter your Name</label>
-        <input class="form-control" id="id">
+{% block dashboard_content %}
+<div class="container">
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="bi bi-send"></i>
+        </div>
+        <h1>Send Campaign Request</h1>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label" for="Message">Role you can Do</label>
-        <input class="form-control" id="Message" name="message" type="text" required>
-    </div>
+    <form method="post" class="request-form">
+        <div class="suggestion-box">
+            <div class="suggestion-title">
+                <i class="bi bi-lightbulb"></i>
+                <span>Tips for a successful campaign request</span>
+            </div>
+            <div class="suggestion-content">
+                Be clear about your services and highlight your strengths. Sponsors are more likely to accept requests
+                with specific details.
+                <ul class="suggestion-list">
+                    <li>Specify the type of content you'll create</li>
+                    <li>Mention your past experience with similar products</li>
+                    <li>Set a reasonable price based on your metrics</li>
+                </ul>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label" for="Amount">Asking Amount</label>
-        <input class="form-control" id="Amount" name="offer" type="number" required>
-    </div>
-        <button class="btn btn-primary" type="submit">Request</button>
-    </div>
+        <div class="form-group">
+            <label class="form-label" for="name">Your Name</label>
+            <input class="form-control" id="name" placeholder="Enter your full name or brand name">
+            <small class="form-text">This will be displayed to the sponsor</small>
+        </div>
 
+        <div class="form-group">
+            <label class="form-label" for="Message">Services You're Offering</label>
+            <textarea class="form-control" id="Message" name="message" rows="4" required
+                placeholder="Describe what you can do for this campaign (e.g., Instagram posts, TikTok videos, etc.)"></textarea>
+        </div>
 
-</form>
+        <div class="form-group">
+            <label class="form-label" for="Amount">Asking Amount ($)</label>
+            <div class="input-group">
+                <span class="input-addon">$</span>
+                <input class="form-control input-with-addon" id="Amount" name="offer" type="number" required
+                    placeholder="Enter your asking price">
+            </div>
+            <small class="form-text">Enter a fair price based on your reach and the campaign requirements</small>
+        </div>
+
+        <button class="btn-primary" type="submit">
+            <i class="bi bi-send-fill"></i>
+            Send Request
+        </button>
+    </form>
+</div>
 {% endblock %}

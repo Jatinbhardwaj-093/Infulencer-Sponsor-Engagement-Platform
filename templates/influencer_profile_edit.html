@@ -1,149 +1,443 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'layout_Influencer.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+{% block title %}
+Edit Profile
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #5664d2;
+        --primary-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+        --secondary-color: #2cda9d;
+        --secondary-gradient: linear-gradient(135deg, #38ef7d, #11998e);
+        --card-bg: #ffffff;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        --text-dark: #2c3345;
+        --text-muted: #7b8493;
+        --border-radius: 16px;
+        --border-radius-sm: 8px;
+        --input-bg: #f8f9fa;
+        --input-border: #e2e8f0;
+        --input-focus: #5664d2;
+        --anim-duration: 0.3s;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 25px;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
 
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+        padding-bottom: 30px;
+    }
+
+    .profile-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 25px 0 10px;
+        color: var (--text-dark);
+    }
+
+    .profile-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+    }
+
+    .avatar-upload {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+    }
+
+    #uploadButton {
+        width: 150px;
+        height: 150px;
+        background: var(--light-gradient, linear-gradient(135deg, #e0eafc, #cfdef3));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 5px solid white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: all var(--anim-duration) ease;
+    }
+
+    #uploadButton:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    #uploadButton img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    #uploadButton::before {
+        content: "\F603";
+        font-family: bootstrap-icons;
+        font-size: 2.5rem;
+        color: white;
+        position: absolute;
+        z-index: 2;
+        opacity: 0;
+        transition: all var(--anim-duration) ease;
+    }
+
+    #uploadButton::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(86, 100, 210, 0.6);
+        opacity: 0;
+        transition: all var(--anim-duration) ease;
+    }
+
+    #uploadButton:hover::before,
+    #uploadButton:hover::after {
+        opacity: 1;
+    }
+
+    .upload-hint {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 10px;
+    }
+
+    .filename-display {
+        font-size: 0.8rem;
+        color: var(--primary-color);
+        margin-top: 5px;
+        font-weight: 500;
+        height: 1.2rem;
+    }
+
+    .form-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .form-section {
+        margin-bottom: 20px;
+        padding: 25px;
+        background-color: #f9fafc;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid #edf0f7;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf0f7;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-grid.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 0.95rem;
+        border: 2px solid var(--input-border);
+        border-radius: var(--border-radius-sm);
+        background-color: var(--input-bg);
+        color: var(--text-dark);
+        transition: all var(--anim-duration) ease;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--input-focus);
+        box-shadow: 0 0 0 3px rgba(86, 100, 210, 0.2);
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237b8493' viewBox='0 0 16 16'%3E%3Cpath d='M8 10.5a.5.5 0 0 1-.354-.146l-4-4a.5.5 0 1 1 .708-.708L8 9.293l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.354.146z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        padding-right: 40px;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .btn-save {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+        margin: 20px auto 0;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(110, 142, 251, 0.5);
+    }
+
+    .btn-save:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 8px rgba(110, 142, 251, 0.4);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .password-group {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-muted);
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .divider {
+        margin: 30px 0;
+        border: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+    }
+
+    @media (max-width: 768px) {
         .container {
-            width: 80%;
-            margin: auto;
             padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px #0000001a;
-            margin-top: 20px;
+            margin: 15px auto;
+            max-width: 95%;
         }
 
-        .profile-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        #uploadButton {
-            width: 120px;
-            height: 120px;
-            background-color: #d7d7d7;
-            border-radius: 50%;
-            display: inline-block;
-            justify-content: center;
-            color: #dbdbdb;
-            cursor: pointer;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        #uploadButton img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .form-sections,
+        .form-grid {
+            grid-template-columns: 1fr;
             gap: 20px;
         }
 
-        .grid-item {
-            background: #fafafa;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        .form-section {
+            padding: 20px;
         }
 
-        .grid-item label {
-            display: block;
-            margin-bottom: 8px;
+        .form-grid.full-width {
+            grid-column: span 1;
         }
 
-        .grid-item input,
-        .grid-item select {
+        .profile-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .btn-save {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
         }
+    }
+</style>
+{% endblock %}
 
-        .submit-btn {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            border: none;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .submit-btn:hover {
-            background: #0056b3;
-        }
-    </style>
-</head>
-
-<body>
+{% block dashboard_content %}
+<div class="container">
     <form method="POST" enctype="multipart/form-data">
-
-        <div class="container">
-            <div class="profile-header">
+        <div class="profile-header">
+            <div class="avatar-upload">
                 {% if profile_image is none %}
-                <input type="file" id="fileInput" name="profile_image" style="display: none;"
-                    onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
-                <label for="fileInput" id="uploadButton"></label>
-                {% else %}
-                <input type="file" id="fileInput" name="profile_image" style="display: none;"
-                    onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
                 <label for="fileInput" id="uploadButton">
-                    <img src="{{ url_for('static', filename='uploads/' ~ profile_image.name) }}" alt="Profile Image"
-                        class="profile-img" />
+                    <i class="bi bi-person-fill" style="font-size: 3.5rem; color: #9eaabc;"></i>
+                </label>
+                {% else %}
+                <label for="fileInput" id="uploadButton">
+                    <img src="{{ url_for('static', filename='uploads/' ~ profile_image.name) }}" alt="Profile Image">
                 </label>
                 {% endif %}
-                <h1>Edit Profile</h1>
+                <input type="file" id="fileInput" name="profile_image" style="display: none;"
+                    onchange="document.getElementById('fileName').textContent = this.files[0] ? this.files[0].name : ''">
+            </div>
+            <div class="filename-display" id="fileName"></div>
+            <p class="upload-hint">Click the avatar to upload a new profile picture</p>
+            <h1>Edit Your Profile</h1>
+        </div>
+
+        <div class="form-sections">
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="bi bi-person-badge"></i> Account Information
+                </h3>
+                <div class="form-group">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username"
+                        value="{{influencer.username}}" required>
+                    <small class="form-text">This is how you'll appear to others on the platform</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{influencer.email}}"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bio">Bio</label>
+                    <textarea class="form-control" id="bio" name="bio" rows="4"
+                        placeholder="Tell sponsors about yourself...">{{influencer.bio}}</textarea>
+                    <small class="form-text">A brief description about yourself that sponsors will see</small>
+                </div>
             </div>
 
-            <div class="grid-container">
-                <div class="grid-item">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" value='{{influencer.username}}'>
+            <div class="form-section">
+                <h3 class="section-title">
+                    <i class="bi bi-shield-lock"></i> Password
+                </h3>
+                <div class="form-group">
+                    <label class="form-label" for="password">Current Password</label>
+                    <div class="password-group">
+                        <input type="password" class="form-control" id="password" name="current_password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="grid-item">
-                    <label for="password">Current Password:</label>
-                    <input type="password" id="password" name="current_password">
+
+                <div class="form-group">
+                    <label class="form-label" for="new_password">New Password</label>
+                    <div class="password-group">
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('new_password')">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <small class="form-text">Leave blank if you don't want to change</small>
                 </div>
-                <div class="grid-item">
-                    <label for="new_password">New Password:</label>
-                    <input type="password" id="new_password" name="new_password">
+
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">Confirm New Password</label>
+                    <div class="password-group">
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="grid-item">
-                    <label for="confirm_password">Confirm New Password:</label>
-                    <input type="password" id="confirm_password" name="confirm_password">
+            </div>
+
+            <div class="form-section form-grid full-width">
+                <h3 class="section-title">
+                    <i class="bi bi-broadcast"></i> Influencer Details
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label" for="platform">Platform</label>
+                    <input type="text" class="form-control" id="platform" name="platform"
+                        value="{{influencer.platform}}" required>
+                    <small class="form-text">Where do you create content? (e.g., Instagram, YouTube, TikTok)</small>
                 </div>
-                <div class="grid-item">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" value="{{influencer.email}}">
+
+                <div class="form-group">
+                    <label class="form-label" for="follower_count">Followers/Subscribers</label>
+                    <input type="text" class="form-control" id="follower_count" name="follower_count"
+                        value="{{influencer.popularity}}" required>
+                    <small class="form-text">Your current follower count</small>
                 </div>
-                <div class="grid-item">
-                    <label for="platform">Platform:</label>
-                    <input type="text" id="platform" name="platform" value="{{influencer.platform}}">
-                </div>
-                <div class="grid-item">
-                    <label for="follower_count">Followers/Subscribers:</label>
-                    <input type="text" id="follower_count" name="follower_count" value="{{influencer.popularity}}">
-                </div>
-                <div class="grid-item">
-                    <label for="genre">Genre:</label>
-                    <select id="genre" name="genre">
-                        <option {% if influencer.genre=='' %}selected{% endif %}>Select your respective Genre</option>
+
+                <div class="form-group">
+                    <label class="form-label" for="genre">Content Niche</label>
+                    <select class="form-control" id="genre" name="genre" required>
+                        <option value="" {% if influencer.genre=='' %}selected{% endif %} disabled>Select your content
+                            niche</option>
                         <option value="Entertainment" {% if influencer.genre=='Entertainment' %}selected{% endif %}>
                             Entertainment</option>
                         <option value="Commentary" {% if influencer.genre=='Commentary' %}selected{% endif %}>Commentary
@@ -156,18 +450,60 @@
                         <option value="Vlogging" {% if influencer.genre=='Vlogging' %}selected{% endif %}>Vlogging
                         </option>
                         <option value="Music" {% if influencer.genre=='Music' %}selected{% endif %}>Music</option>
+                        <option value="Fashion" {% if influencer.genre=='Fashion' %}selected{% endif %}>Fashion</option>
+                        <option value="Beauty" {% if influencer.genre=='Beauty' %}selected{% endif %}>Beauty</option>
+                        <option value="Technology" {% if influencer.genre=='Technology' %}selected{% endif %}>Technology
+                        </option>
+                        <option value="Food" {% if influencer.genre=='Food' %}selected{% endif %}>Food</option>
+                        <option value="Travel" {% if influencer.genre=='Travel' %}selected{% endif %}>Travel</option>
                     </select>
-                </div>
-                <div class="grid-item" style="grid-column: span 2;">
-                    <label for="bio">Bio:</label>
-                    <textarea id="bio" name="bio" rows="3"
-                        style="width: 100%; padding: 8px;">{{influencer.bio}}</textarea>
+                    <small class="form-text">This helps sponsors find you for relevant campaigns</small>
                 </div>
             </div>
+        </div>
 
-            <button type="submit" class="submit-btn">Save Changes</button>
+        <div class="action-buttons">
+            <button type="submit" class="btn-save">
+                <i class="bi bi-check-circle"></i> Save Changes
+            </button>
         </div>
     </form>
-</body>
+</div>
 
-</html>
+<script>
+    function togglePassword(id) {
+        const passwordField = document.getElementById(id);
+        const icon = event.currentTarget.querySelector('i');
+
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+
+    // Preview uploaded profile image before submitting
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                const uploadButton = document.getElementById('uploadButton');
+
+                // Clear existing content and add the preview image
+                while (uploadButton.firstChild) {
+                    uploadButton.removeChild(uploadButton.firstChild);
+                }
+                uploadButton.appendChild(img);
+
+                document.getElementById('fileName').textContent = file.name;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

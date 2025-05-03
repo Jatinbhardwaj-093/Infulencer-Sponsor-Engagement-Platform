@@ -1,120 +1,540 @@
 {% extends 'layout_Influencer.html' %}
 
 {% block title %}
-Influencer Home Page
+Influencer Dashboard
 {% endblock %}
 
-{% block style %}
-<link rel="stylesheet" href="static/influencer_home.css">
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='influencer_home.css') }}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Horizontal layout styles */
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .horizontal-layout {
+        display: flex;
+        flex-direction: row;
+        gap: 25px;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .profile-column {
+        flex: 0 0 350px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .content-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* Profile styles */
+    .profile {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .profile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+    }
+
+    .profile-content {
+        padding: 25px;
+    }
+
+    .profile-heade {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+
+    .profile-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .profile-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .profile-container:hover .profile-img {
+        transform: scale(1.08);
+    }
+
+    .profile-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #f0f2f5, #e6e9ef);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .profile-placeholder i {
+        font-size: 3.5rem;
+        color: rgba(110, 142, 251, 0.7);
+        transition: all 0.3s ease;
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 16px;
+        height: 16px;
+        background-color: #38ef7d;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 2;
+    }
+
+    .edit-profile-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+    }
+
+    .edit-profile-icon {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .profile-container:hover .edit-profile-overlay {
+        opacity: 1;
+    }
+
+    .profile h2 {
+        margin: 0 0 8px 0;
+        color: var(--text-dark);
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .profile-tagline {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 15px;
+    }
+
+    .profile-stats {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background-color: var(--gray-bg);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        transition: transform var(--anim-duration) ease;
+        min-width: 100px;
+    }
+
+    .edit-profile-btn {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 5px 15px rgba(110, 142, 251, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        margin: 0 auto;
+        width: fit-content;
+    }
+
+    .edit-profile-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(110, 142, 251, 0.5);
+        color: white;
+        text-decoration: none;
+    }
+
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .info-item:hover {
+        background: #f0f2f5;
+        transform: translateY(-2px);
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(110, 142, 251, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .info-icon i {
+        font-size: 1.2rem;
+        color: #6e8efb;
+    }
+
+    .info-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        color: #7b8493;
+        margin-bottom: 3px;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #2c3345;
+        word-break: break-word;
+    }
+
+    .bio-section {
+        margin-top: 20px;
+    }
+
+    .bio-section h4 {
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+    }
+
+    .bio-text {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Request sections */
+    .request-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .request-section h3 {
+        padding: 20px;
+        margin: 0;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: rgba(110, 142, 251, 0.1);
+        border-radius: 8px;
+        margin-right: 12px;
+    }
+
+    .section-icon i {
+        color: #6e8efb;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 992px) {
+        .horizontal-layout {
+            flex-direction: column;
+        }
+
+        .profile-column {
+            flex: 1;
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}
 
-{% block content %}
-<div class="grid">
-    <div class="profile">
-        {% if profile =='none' %}
-        <div class="profile-container">
-            <img src="" alt="Profile Image" class="profile-img" onerror="this.style.display='none';" />
-        </div>
-        {% else %}
-        <div class="profile-container">
-            <img src="{{ url_for('static', filename='uploads/' ~ profile.name) }}" alt="Profile Image"
-                class="profile-img" />
-        </div>
-        {% endif %}
-
-        <h2>{{founduser.username}}</h2>
-        <p>Niche: {{founduser.genre}}</p>
-        <p>Email : {{founduser.email}}</p>
-        <p>Platform : {{founduser.platform}}</p>
-        <p>Popularity : {{founduser.popularity}}</p>
-
-        <a class="btn" style="background-color: #a0ffac; font-weight: bold;"
-            href="{{ url_for('influencer.profile_edit') }}" role="button">Edit Profile</a>
-
-    </div>
-
-
-    <div class="pending_request">
-        <h3>PENDING REQUESTS</h3>
-        <table class="contain-table">
-            <thead>
-                <tr>
-                    <th scope="col">Sponsor</th>
-                    <th scope="col">Campaign</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Budget</th>
-                    <th scope="col">Offer</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </thead>
-            {% for sponsor_request,campaign,sponsor in sponsor_requests %}
-
-            <tbody>
-                <tr>
-                    <th scope="row">{{sponsor.industry}}</th>
-                    <td>{{campaign.campaign_name}}</td>
-                    <td>{{sponsor_request.message}}</td>
-                    <td>{{campaign.budget}}</td>
-                    <td>{{sponsor_request.amount}}</td>
-                    <td>
-                        {% if sponsor_request.influencer_call == 'Approve' %}
-                        <p style="color: #008000;">Accepted</p>
-                        {% elif sponsor_request.influencer_call == 'Reject' %}
-                        <p style="color: #ff0000;">Rejected</p>
+{% block dashboard_content %}
+<div class="horizontal-layout">
+    <!-- Profile Column -->
+    <div class="profile-column">
+        <div class="profile">
+            <div class="profile-content">
+                <div class="profile-heade">
+                    <div class="profile-container">
+                        {% if profile == 'none' %}
+                        <div class="profile-placeholder">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
                         {% else %}
-                        <form method="post">
-                            <button style="background-color: #b0ffb0; border: none;" name="influencer_call"
-                                value="Approve">Approve</button>
-                            <button style="background-color: #ff5252; border: none; " name="influencer_call"
-                                value="Reject">Reject</button>
-                            <input type="hidden" name="sponsor_request_id"
-                                value="{{sponsor_request.sponsor_request_id}}">
-                        </form>
+                        <img src="{{ url_for('static', filename='uploads/' ~ profile.name) }}" alt="Profile Image"
+                            class="profile-img" />
                         {% endif %}
-                    </td>
-                </tr>
-            </tbody>
-            {% endfor %}
-        </table>
+                        <div class="status-indicator"></div>
+                        <a href="{{ url_for('influencer.profile_edit') }}" class="edit-profile-overlay">
+                            <i class="bi bi-pencil-fill edit-profile-icon"></i>
+                        </a>
+                    </div>
 
+                    <h2>{{founduser.username}}</h2>
+                    <div class="profile-tagline">
+                        {% if founduser.genre %}
+                        {{founduser.genre}} influencer on {{founduser.platform}}
+                        {% else %}
+                        Influencer on {{founduser.platform}}
+                        {% endif %}
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">{{founduser.popularity}}</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{(sponsor_requests|length + influencer_requests|length)}}</div>
+                            <div class="stat-label">Deals</div>
+                        </div>
+                    </div>
+
+                    <a class="edit-profile-btn" href="{{ url_for('influencer.profile_edit') }}" role="button">
+                        <i class="bi bi-pencil-square"></i> Edit Profile
+                    </a>
+                </div>
+
+                <div class="profile-info">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-bookmark-star"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Niche</div>
+                            <div class="info-value">{{founduser.genre}}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-broadcast"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Platform</div>
+                            <div class="info-value">{{founduser.platform}}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Contact</div>
+                            <div class="info-value" style="font-size: 0.85rem;">{{founduser.email}}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if founduser.bio %}
+                <div class="bio-section">
+                    <h4>About Me</h4>
+                    <p class="bio-text">{{founduser.bio}}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
+    <!-- Content Column -->
+    <div class="content-column">
+        <div class="request-section pending_request">
+            <h3>
+                <span class="section-icon"><i class="bi bi-inbox"></i></span>
+                Pending Requests
+            </h3>
+            {% if sponsor_requests %}
+            <table class="contain-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Sponsor</th>
+                        <th scope="col">Campaign</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Offer</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sponsor_request, campaign, sponsor in sponsor_requests %}
+                    <tr>
+                        <td data-label="Sponsor">{{sponsor.industry}}</td>
+                        <td data-label="Campaign">
+                            <div class="campaign-name">{{campaign.campaign_name}}</div>
+                        </td>
+                        <td data-label="Message">{{sponsor_request.message}}</td>
+                        <td data-label="Budget">
+                            <span class="badge badge-amount">${{campaign.budget}}</span>
+                        </td>
+                        <td data-label="Offer">${{sponsor_request.amount}}</td>
+                        <td data-label="Action">
+                            {% if sponsor_request.influencer_call == 'Approve' %}
+                            <span class="status-approved"><i class="bi bi-check-circle-fill"></i> Accepted</span>
+                            {% elif sponsor_request.influencer_call == 'Reject' %}
+                            <span class="status-rejected"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                            {% else %}
+                            <form method="post" class="action-buttons">
+                                <button type="submit" class="btn-approve" name="influencer_call" value="Approve">
+                                    <i class="bi bi-check-lg"></i> Accept
+                                </button>
+                                <button type="submit" class="btn-reject" name="influencer_call" value="Reject">
+                                    <i class="bi bi-x-lg"></i> Reject
+                                </button>
+                                <input type="hidden" name="sponsor_request_id"
+                                    value="{{sponsor_request.sponsor_request_id}}">
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <div class="empty-state-text">No pending requests</div>
+                <div class="empty-state-subtext">When sponsors send you requests, they'll appear here</div>
+            </div>
+            {% endif %}
+        </div>
 
-    <div class="sent_request">
-        <h3>SENT REQUESTS</h3>
-        <table class="contain-table">
-            <thead>
-                <tr>
-                    <th scope="col">Sponsor</th>
-                    <th scope="col">Campaign</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Budget</th>
-                    <th scope="col">Ask</th>
-                    <th scope="col">Request</th>
-                </tr>
-            </thead>
-            {% for influencer_request,campaign,sponsor in influencer_requests %}
-
-            <tbody>
-                <tr>
-                    <th scope="row">{{sponsor.industry}}</th>
-                    <td>{{campaign.campaign_name}}</td>
-                    <td>{{influencer_request.message}}</td>
-                    <td>{{campaign.budget}}</td>
-                    <td>{{influencer_request.amount}}</td>
-                    {% if influencer_request.influencer_status == 'Approved' %}
-                    <td style="color: #008000">{{influencer_request.influencer_status}}</td>
-                    {% elif influencer_request.influencer_status == 'Rejected' %}
-                    <td style="color: #ff0000;">{{influencer_request.influencer_status}}</td>
-                    {% else %}
-                    <td>{{influencer_request.influencer_status}}</td>
-                    {% endif %}
-                </tr>
-            </tbody>
-            {% endfor %}
-        </table>
+        <div class="request-section sent_request">
+            <h3>
+                <span class="section-icon"><i class="bi bi-send"></i></span>
+                Sent Requests
+            </h3>
+            {% if influencer_requests %}
+            <table class="contain-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Sponsor</th>
+                        <th scope="col">Campaign</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Ask</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for influencer_request, campaign, sponsor in influencer_requests %}
+                    <tr>
+                        <td data-label="Sponsor">{{sponsor.industry}}</td>
+                        <td data-label="Campaign">
+                            <div class="campaign-name">{{campaign.campaign_name}}</div>
+                        </td>
+                        <td data-label="Message">{{influencer_request.message}}</td>
+                        <td data-label="Budget">
+                            <span class="badge badge-amount">${{campaign.budget}}</span>
+                        </td>
+                        <td data-label="Ask">${{influencer_request.amount}}</td>
+                        <td data-label="Status">
+                            {% if influencer_request.influencer_status == 'Approved' %}
+                            <span class="status-approved"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                            {% elif influencer_request.influencer_status == 'Rejected' %}
+                            <span class="status-rejected"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                            {% else %}
+                            <span class="status-pending"><i class="bi bi-hourglass-split"></i>
+                                {{influencer_request.influencer_status}}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-send"></i>
+                </div>
+                <div class="empty-state-text">No sent requests</div>
+                <div class="empty-state-subtext">When you send requests to sponsors, they'll appear here</div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
-
 {% endblock %}

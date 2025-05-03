@@ -43,6 +43,21 @@ def logout():
     flash('You have been logged out successfully!', 'success')
     return redirect(url_for('main.index'))
 
+@main_bp.route("/influencer_logout")
+def influencer_logout():
+    """Logout for influencers"""
+    session.pop('influencer_name', None)
+    flash('Successfully logged out', 'success')
+    return redirect(url_for("main.index"))
+
+@main_bp.route("/sponsor_logout")
+def sponsor_logout():
+    """Logout for sponsors"""
+    session.pop('sponsor_id', None)
+    session.pop('sponsor_username', None)
+    flash('Successfully logged out', 'success')
+    return redirect(url_for("main.index"))
+
 # Admin routes
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -685,6 +700,148 @@ def profile_edit():
         influencer=influencer,
         profile_image=profile_image
     )
+
+@influencer_bp.route("/active_campaign")
+def active_campaign():
+    """Influencer active campaign page"""
+    if 'influencer_name' not in session:
+        flash('Please login to access active campaigns.', 'warning')
+        return redirect(url_for('influencer.login'))
+        
+    username = session['influencer_name']
+    founduser = Influencer.query.filter_by(username=username).first()
+    
+    # Get profile image
+    profile = Img.query.filter_by(influencer_id=founduser.influencer_id).first()
+    profile = profile if profile else 'none'
+    
+    # Get influencer's accepted requests
+    influencer_request_data = db.session.query(
+        InfluencerAdRequest, Campaign, Sponsor
+    ).join(
+        Campaign, InfluencerAdRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Sponsor, Campaign.sponsor_id == Sponsor.sponsor_id
+    ).filter(
+        InfluencerAdRequest.influencer_id == founduser.influencer_id,
+        InfluencerAdRequest.influencer_status == 'Approved'
+    ).all()
+    
+    # Get accepted sponsor requests
+    sponsor_request_data = db.session.query(
+        SponsorRequest, Campaign, Sponsor
+    ).join(
+        Campaign, SponsorRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Sponsor, Campaign.sponsor_id == Sponsor.sponsor_id
+    ).filter(
+        SponsorRequest.influencer_id == founduser.influencer_id,
+        SponsorRequest.influencer_call == 'Approve'
+    ).all()
+    
+    return render_template(
+        'influencer_active_campaign.html',
+        influencer_requests=influencer_request_data,
+        sponsor_requests=sponsor_request_data,
+        profile=profile
+    )
+
+@influencer_bp.route("/find_campaign")
+def find_campaign():
+    """Influencer find campaign page"""
+    if 'influencer_name' not in session:
+        flash('Please login to access this page.', 'warning')
+        return redirect(url_for('influencer.login'))
+        
+    username = session['influencer_name']
+    founduser = Influencer.query.filter_by(username=username).first()
+    
+    # Get profile image
+    profile = Img.query.filter_by(influencer_id=founduser.influencer_id).first()
+    profile = profile if profile else 'none'
+    
+    # Find public campaigns that match the influencer's genre
+    matched_campaigns = Campaign.query.filter(
+        Campaign.visibility == 'Public',
+        Campaign.status == 'Active'
+    ).all()
+    
+    # Get the sponsors for each campaign
+    campaigns_with_sponsors = []
+    for campaign in matched_campaigns:
+        sponsor = Sponsor.query.get(campaign.sponsor_id)
+        
+        # Check if influencer has already sent a request for this campaign
+        existing_request = InfluencerAdRequest.query.filter_by(
+            influencer_id=founduser.influencer_id,
+            campaign_id=campaign.campaign_id
+        ).first()
+        
+        # Check if sponsor has already sent a request for this campaign
+        sponsor_sent_request = SponsorRequest.query.filter_by(
+            influencer_id=founduser.influencer_id,
+            campaign_id=campaign.campaign_id
+        ).first()
+        
+        if not existing_request and not sponsor_sent_request:
+            campaigns_with_sponsors.append({
+                'campaign': campaign,
+                'sponsor': sponsor
+            })
+    
+    return render_template(
+        'find_campaign.html',
+        campaigns=campaigns_with_sponsors,
+        profile=profile,
+        influencer=founduser
+    )
+
+@influencer_bp.route("/send_request")
+def send_request():
+    """Handle influencer request to join a campaign"""
+    if 'influencer_name' not in session:
+        flash('Please login to send campaign requests.', 'warning')
+        return redirect(url_for('influencer.login'))
+    
+    campaign_id = request.args.get('campaign_id')
+    if not campaign_id:
+        flash('Campaign not found.', 'danger')
+        return redirect(url_for('influencer.find_campaign'))
+        
+    username = session['influencer_name']
+    influencer = Influencer.query.filter_by(username=username).first()
+    campaign = Campaign.query.get(campaign_id)
+    
+    if not campaign:
+        flash('Campaign not found.', 'danger')
+        return redirect(url_for('influencer.find_campaign'))
+    
+    # Check if a request already exists
+    existing_request = InfluencerAdRequest.query.filter_by(
+        influencer_id=influencer.influencer_id,
+        campaign_id=campaign_id
+    ).first()
+    
+    if existing_request:
+        flash('You have already sent a request for this campaign.', 'info')
+        return redirect(url_for('influencer.find_campaign'))
+    
+    # Create a new request
+    new_request = InfluencerAdRequest(
+        influencer_id=influencer.influencer_id,
+        campaign_id=campaign_id,
+        sponsor_id=campaign.sponsor_id,
+        influencer_status='Pending',
+        sponsor_status='Pending',
+        message=request.args.get('message', ''),
+        created_at=datetime.utcnow()
+    )
+    
+    db.session.add(new_request)
+    db.session.commit()
+    
+    flash('Campaign request sent successfully! The sponsor will review your request.', 'success')
+    return redirect(url_for('influencer.home'))
 
 # Sponsor routes
 @sponsor_bp.route("/login", methods=['GET', 'POST'])
