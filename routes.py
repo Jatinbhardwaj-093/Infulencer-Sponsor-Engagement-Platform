@@ -843,6 +843,67 @@ def send_request():
     flash('Campaign request sent successfully! The sponsor will review your request.', 'success')
     return redirect(url_for('influencer.home'))
 
+@influencer_bp.route("/stats")
+def stats():
+    """Influencer performance stats page"""
+    if 'influencer_name' not in session:
+        flash('Please login to access your stats.', 'warning')
+        return redirect(url_for('influencer.login'))
+        
+    username = session['influencer_name']
+    founduser = Influencer.query.filter_by(username=username).first()
+    
+    # Get profile image
+    profile = Img.query.filter_by(influencer_id=founduser.influencer_id).first()
+    profile = profile if profile else 'none'
+    
+    # Calculate performance stats
+    active_campaigns = 0
+    total_earnings = 0
+    
+    # Count active campaigns from influencer's approved requests
+    active_campaigns_data = db.session.query(
+        InfluencerAdRequest
+    ).filter(
+        InfluencerAdRequest.influencer_id == founduser.influencer_id,
+        InfluencerAdRequest.influencer_status == 'Approved'
+    ).all()
+    active_campaigns += len(active_campaigns_data)
+    
+    # Add approved sponsor requests
+    sponsor_requests_data = db.session.query(
+        SponsorRequest
+    ).filter(
+        SponsorRequest.influencer_id == founduser.influencer_id,
+        SponsorRequest.influencer_call == 'Approve'
+    ).all()
+    active_campaigns += len(sponsor_requests_data)
+    
+    # Calculate total earnings (placeholder for actual logic)
+    # In a real application, this would likely pull from a transactions table
+    for request in active_campaigns_data:
+        if hasattr(request, 'amount') and request.amount:
+            total_earnings += request.amount
+            
+    for request in sponsor_requests_data:
+        if hasattr(request, 'amount') and request.amount:
+            total_earnings += request.amount
+    
+    # Generate some engagement metrics (placeholder data)
+    # In a real application, this would be fetched from analytics database
+    engagement_rate = 8.7
+    deliverable_completion = 85
+    
+    return render_template(
+        'influencer_stats.html',
+        founduser=founduser,
+        profile=profile,
+        active_campaigns=active_campaigns,
+        total_earnings=total_earnings,
+        engagement_rate=engagement_rate,
+        deliverable_completion=deliverable_completion
+    )
+
 # Sponsor routes
 @sponsor_bp.route("/login", methods=['GET', 'POST'])
 def login():

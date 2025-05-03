@@ -326,6 +326,206 @@ Influencer Dashboard
             width: 100%;
         }
     }
+
+    /* Performance Chart styles */
+    .chart-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        margin-top: 25px;
+    }
+
+    .chart-section h3 {
+        padding: 20px;
+        margin: 0;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .charts-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        padding: 20px;
+    }
+
+    .chart-card {
+        flex: 1;
+        min-width: 300px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .chart-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3345;
+    }
+
+    .chart-canvas-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        margin-right: 6px;
+    }
+
+    .chart-info {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .info-stat {
+        text-align: center;
+    }
+
+    .info-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .time-filter {
+        display: flex;
+        gap: 10px;
+    }
+
+    .time-option {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        background: white;
+        border: 1px solid #e0e0e0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .time-option.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .time-option:hover:not(.active) {
+        background: #f0f2f5;
+    }
+
+    .metrics-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 0 20px 20px 20px;
+    }
+
+    .metric-card {
+        flex: 1;
+        min-width: 150px;
+        background: linear-gradient(135deg, #f8f9fa, #f2f3f5);
+        border-radius: 10px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .metric-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .metric-icon i {
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #2c3345;
+    }
+
+    .metric-label {
+        font-size: 0.85rem;
+        color: #7b8493;
+    }
+
+    .metric-trend {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8rem;
+        margin-top: 10px;
+    }
+
+    .trend-up {
+        color: #38ef7d;
+    }
+
+    .trend-down {
+        color: #ff6b6b;
+    }
 </style>
 {% endblock %}
 
@@ -537,4 +737,484 @@ Influencer Dashboard
         </div>
     </div>
 </div>
+
+<!-- Performance Charts Section -->
+<div id="performance" class="chart-section">
+    <h3>
+        <span class="section-icon"><i class="bi bi-graph-up"></i></span>
+        Performance Dashboard
+    </h3>
+
+    <div class="metrics-container">
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-eye"></i>
+            </div>
+            <div class="metric-value">154.8K</div>
+            <div class="metric-label">Total Impressions</div>
+            <div class="metric-trend trend-up">
+                <i class="bi bi-arrow-up"></i> 12.4%
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-hand-thumbs-up"></i>
+            </div>
+            <div class="metric-value">42.3K</div>
+            <div class="metric-label">Total Engagement</div>
+            <div class="metric-trend trend-up">
+                <i class="bi bi-arrow-up"></i> 8.7%
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-cash-coin"></i>
+            </div>
+            <div class="metric-value">$8,450</div>
+            <div class="metric-label">Earnings (YTD)</div>
+            <div class="metric-trend trend-up">
+                <i class="bi bi-arrow-up"></i> 24.2%
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-briefcase"></i>
+            </div>
+            <div class="metric-value">{{ (sponsor_requests|length + influencer_requests|length) }}</div>
+            <div class="metric-label">Active Deals</div>
+            <div class="metric-trend">
+                {% if (sponsor_requests|length + influencer_requests|length) > 3 %}
+                <span class="trend-up"><i class="bi bi-arrow-up"></i> Active</span>
+                {% else %}
+                <span>Steady</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Engagement Metrics</div>
+                <div class="time-filter">
+                    <div class="time-option" data-period="week">Week</div>
+                    <div class="time-option active" data-period="month">Month</div>
+                    <div class="time-option" data-period="year">Year</div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="engagementChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(110, 142, 251, 0.6)"></div>
+                    <div class="legend-text">Likes</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(167, 119, 227, 0.6)"></div>
+                    <div class="legend-text">Comments</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(56, 239, 125, 0.6)"></div>
+                    <div class="legend-text">Shares</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Earnings Overview</div>
+                <div class="time-filter">
+                    <div class="time-option" data-period="q1">Q1</div>
+                    <div class="time-option" data-period="q2">Q2</div>
+                    <div class="time-option active" data-period="ytd">YTD</div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="earningsChart"></canvas>
+            </div>
+            <div class="chart-info">
+                <div class="info-stat">
+                    <div class="info-value">$8,450</div>
+                    <div class="info-label">Total Earnings</div>
+                </div>
+                <div class="info-stat">
+                    <div class="info-value">$1,850</div>
+                    <div class="info-label">Last Month</div>
+                </div>
+                <div class="info-stat">
+                    <div class="info-value">$4,320</div>
+                    <div class="info-label">Projected Q2</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Campaign Performance</div>
+                <div class="time-filter">
+                    <div class="time-option" data-period="recent">Recent</div>
+                    <div class="time-option active" data-period="all">All</div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="campaignChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(110, 142, 251, 0.6)"></div>
+                    <div class="legend-text">Conversions</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(167, 119, 227, 0.6)"></div>
+                    <div class="legend-text">Impressions</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Audience Growth</div>
+                <div class="time-filter">
+                    <div class="time-option" data-period="3m">3M</div>
+                    <div class="time-option active" data-period="6m">6M</div>
+                    <div class="time-option" data-period="1y">1Y</div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="audienceChart"></canvas>
+            </div>
+            <div class="chart-info">
+                <div class="info-stat">
+                    <div class="info-value">{{founduser.popularity}}</div>
+                    <div class="info-label">Current Followers</div>
+                </div>
+                <div class="info-stat">
+                    <div class="info-value">+24.6%</div>
+                    <div class="info-label">6-Month Growth</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set up engagement chart
+        const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+        const engagementChart = new Chart(engagementCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Likes',
+                        data: [12500, 14200, 13800, 15600, 16200, 17500],
+                        borderColor: 'rgba(110, 142, 251, 1)',
+                        backgroundColor: 'rgba(110, 142, 251, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Comments',
+                        data: [4200, 4800, 5100, 5600, 6200, 6800],
+                        borderColor: 'rgba(167, 119, 227, 1)',
+                        backgroundColor: 'rgba(167, 119, 227, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Shares',
+                        data: [2800, 3200, 3600, 4100, 4500, 5200],
+                        borderColor: 'rgba(56, 239, 125, 1)',
+                        backgroundColor: 'rgba(56, 239, 125, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Set up earnings chart
+        const earningsCtx = document.getElementById('earningsChart').getContext('2d');
+        const earningsChart = new Chart(earningsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Monthly Earnings',
+                        data: [1200, 1450, 1800, 1650, 1850, 0],
+                        backgroundColor: function (context) {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) {
+                                return null;
+                            }
+                            return getGradient(ctx, chartArea);
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return '$' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: value => '$' + value,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Set up campaign chart
+        const campaignCtx = document.getElementById('campaignChart').getContext('2d');
+        const campaignChart = new Chart(campaignCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Campaign 1', 'Campaign 2', 'Campaign 3', 'Campaign 4', 'Campaign 5'],
+                datasets: [
+                    {
+                        label: 'Conversions',
+                        data: [85, 72, 78, 90, 82],
+                        fill: true,
+                        backgroundColor: 'rgba(110, 142, 251, 0.2)',
+                        borderColor: 'rgba(110, 142, 251, 1)',
+                        pointBackgroundColor: 'rgba(110, 142, 251, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(110, 142, 251, 1)'
+                    },
+                    {
+                        label: 'Impressions',
+                        data: [92, 88, 80, 75, 95],
+                        fill: true,
+                        backgroundColor: 'rgba(167, 119, 227, 0.2)',
+                        borderColor: 'rgba(167, 119, 227, 1)',
+                        pointBackgroundColor: 'rgba(167, 119, 227, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(167, 119, 227, 1)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            backdropColor: 'transparent',
+                            font: {
+                                size: 8
+                            }
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Set up audience growth chart
+        const audienceCtx = document.getElementById('audienceChart').getContext('2d');
+        const audienceChart = new Chart(audienceCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Followers',
+                        data: [
+                            parseInt("{{founduser.popularity}}") * 0.8,
+                            parseInt("{{founduser.popularity}}") * 0.85,
+                            parseInt("{{founduser.popularity}}") * 0.9,
+                            parseInt("{{founduser.popularity}}") * 0.93,
+                            parseInt("{{founduser.popularity}}") * 0.97,
+                            parseInt("{{founduser.popularity}}") * 1
+                        ],
+                        borderColor: 'rgba(110, 142, 251, 1)',
+                        backgroundColor: function (context) {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) {
+                                return null;
+                            }
+                            return getAreaGradient(ctx, chartArea);
+                        },
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create gradient for earnings chart
+        function getGradient(ctx, chartArea) {
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            gradient.addColorStop(0, 'rgba(110, 142, 251, 0.6)');
+            gradient.addColorStop(1, 'rgba(167, 119, 227, 0.6)');
+            return gradient;
+        }
+
+        // Create gradient for area charts
+        function getAreaGradient(ctx, chartArea) {
+            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+            gradient.addColorStop(0, 'rgba(110, 142, 251, 0.0)');
+            gradient.addColorStop(0.5, 'rgba(110, 142, 251, 0.1)');
+            gradient.addColorStop(1, 'rgba(110, 142, 251, 0.3)');
+            return gradient;
+        }
+
+        // Handle time period filters
+        document.querySelectorAll('.time-option').forEach(option => {
+            option.addEventListener('click', function () {
+                const parent = this.closest('.chart-header');
+                parent.querySelectorAll('.time-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+
+                // Here you would typically fetch new data based on the selected time period
+                // For demo purposes, we'll just show a random change in the charts
+                const chartContainer = this.closest('.chart-card');
+                const canvas = chartContainer.querySelector('canvas');
+                const chartInstance = Chart.getChart(canvas);
+
+                if (chartInstance) {
+                    // Apply small random changes to the data
+                    chartInstance.data.datasets.forEach(dataset => {
+                        dataset.data = dataset.data.map(value =>
+                            value * (0.9 + Math.random() * 0.2)
+                        );
+                    });
+                    chartInstance.update();
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -2,27 +2,12 @@
 
 {% block title %}Your Performance Stats{% endblock %}
 
-{% block styles %}
-{{ super() }}
+{% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='stats.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item active">Influencer Management</li>
-{% endblock %}
-
-{% block page_title %}Influencer Statistics{% endblock %}
-
-{% block page_action %}
-<div class="d-none d-sm-inline-block">
-    <button class="btn btn-sm btn-primary shadow-sm" id="downloadReport">
-        <i class="fas fa-download fa-sm text-white-50 me-1"></i> Generate Report
-    </button>
-</div>
-{% endblock %}
-
-{% block content %}
+{% block dashboard_content %}
 <div class="container-fluid mt-4">
     <h2 class="text-dark mb-4">Your Performance Analytics</h2>
 
