@@ -1,36 +1,274 @@
 {% extends 'layout_sponsor.html' %}
 
-{% block title %}   
-    Sponsor Campaigns
-    
+{% block title %}Find Influencers - InfluConnect{% endblock %}
+
+{% block page_styles %}
+<style>
+    .search-container {
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+
+    .search-form {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .search-input-container {
+        position: relative;
+        flex-grow: 1;
+        margin-right: 1rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .search-input {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        font-size: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+
+    .search-input:focus {
+        border-color: #2e86de;
+        box-shadow: 0 0 0 0.2rem rgba(46, 134, 222, 0.25);
+        outline: none;
+    }
+
+    .search-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #2e86de 0%, #54a0ff 100%);
+        color: white;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .search-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(46, 134, 222, 0.3);
+    }
+
+    .influencer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .influencer-card {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        transition: all 0.3s ease;
+        background: white;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .influencer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+    }
+
+    .profile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+        flex: 1;
+    }
+
+    .influencer-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2e86de;
+    }
+
+    .influencer-details {
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .detail-item i {
+        width: 1.5rem;
+        color: #2e86de;
+        font-size: 0.95rem;
+    }
+
+    .bio {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+        display: -webkit-box;
+        line-clamp: 3;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .request-btn {
+        display: block;
+        width: 100%;
+        padding: 0.75rem;
+        text-align: center;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #2e86de 0%, #54a0ff 100%);
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .request-btn:hover {
+        background: linear-gradient(135deg, #1a68b3 0%, #3d8fea 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(46, 134, 222, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 0;
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        font-size: 3.5rem;
+        color: #d1d3e2;
+        margin-bottom: 1rem;
+    }
+
+    .search-results-info {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        border-left: 4px solid #2e86de;
+        color: #495057;
+    }
+
+    .search-term {
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
 
-{% block style  %}
-    <link rel="stylesheet" href="static/find_influencer.css">
-{% endblock %}
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Find Influencers</h1>
+    </div>
 
-{% block content %}
-<div class="search-container">
-    <form  method="post">
-        <input type="text" name="influencer_name_search" placeholder="Search influencer by name" class="search-input">
-        <button type="submit" value="submit" class="search-button">Search</button>
-    </form>
-</div>
-<div class="container">
+    <!-- Search Bar -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="post" class="search-form">
+                <div class="search-input-container">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="influencer_name_search"
+                        placeholder="Search influencers by name, niche, or platform..." class="search-input"
+                        value="{{ search_term }}">
+                </div>
+                <button type="submit" class="search-button">
+                    <i class="bi bi-search"></i>
+                    Search
+                </button>
+            </form>
 
-    {% for item in found_influencer %}
-    
-    <div class="card">
-        <img src="https://via.placeholder.com/250x150" alt="Profile Picture">
-        <div class="card-content">
-            <h2>{{item.username}}</h2>
-            <p class="email">{{item.email}}</p>
-            <p class="popularity">Popularity: {{item.popularity}}</p>
-            <p class="niche">Niche: {{item.genre}}</p>
-            <a class="btn btn-primary" href="{{ url_for('sponsor_influencer_requests', influencer_id = item.influencer_id) }}" type="submit" role="button">Request</a>
-
+            {% if search_term %}
+            <div class="search-results-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Showing results for "<span class="search-term">{{ search_term }}</span>"
+                <a href="{{ url_for('sponsor.find_influencer') }}" class="float-end text-decoration-none">
+                    <i class="bi bi-x-circle"></i> Clear search
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
-    {% endfor %}
+
+    <!-- Influencers List -->
+    {% if found_influencer %}
+    <div class="influencer-grid">
+        {% for item in found_influencer %}
+        <div class="influencer-card">
+            <div class="card-header">
+                <img src="https://via.placeholder.com/300x160" alt="Profile Picture" class="profile-image">
+            </div>
+            <div class="card-body">
+                <h5 class="influencer-name">{{ item.username }}</h5>
+                <div class="influencer-details">
+                    <div class="detail-item">
+                        <i class="bi bi-envelope"></i>
+                        <span>{{ item.email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>{{ item.popularity }} followers</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-tag"></i>
+                        <span>{{ item.genre }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-broadcast"></i>
+                        <span>{{ item.platform|default('Various Platforms') }}</span>
+                    </div>
+                </div>
+
+                <p class="bio">{{ item.bio|default('No bio available.') }}</p>
+
+                <a href="{{ url_for('sponsor.influencer_requests', influencer_id = item.influencer_id) }}"
+                    class="request-btn">
+                    <i class="bi bi-send me-2"></i>Send Request
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-people empty-icon d-block"></i>
+        <h4>No Influencers Found</h4>
+        <p>{% if search_term %}No results match your search criteria. Try different keywords.{% else %}There are no
+            influencers available at the moment.{% endif %}</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

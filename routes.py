@@ -982,7 +982,289 @@ def home():
     
     return render_template('sponsor_home.html', sponsor=sponsor, campaigns=campaigns)
 
-# More routes for influencer and sponsor management would be placed here
+@sponsor_bp.route("/create_campaign", methods=['GET', 'POST'])
+def create_campaign():
+    """Create new campaign page"""
+    if 'sponsor_id' not in session:
+        flash('Please login to create a campaign.', 'warning')
+        return redirect(url_for('sponsor.login'))
+
+    if request.method == 'POST':
+        campaign_name = request.form.get('name')
+        description = request.form.get('description')
+        budget = request.form.get('budget')
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+        goals = request.form.get('goals')
+        visibility = request.form.get('visiblity')  # Note: correcting the typo later would require database changes
+        finding_niche = request.form.get('genre') if visibility == 'Private' else None
+
+        # Create new campaign
+        new_campaign = Campaign(
+            campaign_name=campaign_name,
+            description=description,
+            budget=budget,
+            start_date=start_date,
+            end_date=end_date,
+            goals=goals,
+            visibility=visibility,
+            finding_niche=finding_niche,
+            sponsor_id=session['sponsor_id'],
+            status='Active'  # Set to 'Pending' if admin approval is required
+        )
+        
+        db.session.add(new_campaign)
+        db.session.commit()
+        
+        flash('Campaign created successfully!', 'success')
+        return redirect(url_for('sponsor.home'))
+        
+    return render_template('sponsor_create_campaign.html')
+
+@sponsor_bp.route("/find_influencer", methods=['GET', 'POST'])
+def find_influencer():
+    """Find influencers page for sponsors"""
+    if 'sponsor_id' not in session:
+        flash('Please login to find influencers.', 'warning')
+        return redirect(url_for('sponsor.login'))
+        
+    sponsor_id = session['sponsor_id']
+    sponsor = Sponsor.query.get(sponsor_id)
+    
+    # Get all non-flagged influencers
+    query = Influencer.query.filter_by(flag='no')
+    
+    # Handle search functionality
+    search_term = None
+    if request.method == 'POST':
+        search_term = request.form.get('influencer_name_search')
+        if search_term:
+            # Search by username, genre or platform
+            query = query.filter(
+                (Influencer.username.ilike(f'%{search_term}%')) | 
+                (Influencer.genre.ilike(f'%{search_term}%')) |
+                (Influencer.platform.ilike(f'%{search_term}%'))
+            )
+    
+    # Execute the query to get the final list
+    found_influencer = query.all()
+    
+    return render_template('find_influencer.html', 
+                          sponsor=sponsor, 
+                          found_influencer=found_influencer,
+                          search_term=search_term)
+
+@sponsor_bp.route("/assigned_campaign", methods=['GET', 'POST'])
+def assigned_campaign():
+    """Active partnerships/assigned campaigns page for sponsors"""
+    if 'sponsor_id' not in session:
+        flash('Please login to view your active partnerships.', 'warning')
+        return redirect(url_for('sponsor.login'))
+    
+    sponsor_id = session['sponsor_id']
+    
+    # Handle POST requests for approval/rejection of content submissions
+    if request.method == 'POST':
+        completed_campaign_id = request.form.get('completed_campaign_id')
+        whoes_request = request.form.get('whoes_request') # Note: typo in original database column
+        sponsor_completion_approval = request.form.get('sponsor_completion_approval')
+        
+        if completed_campaign_id and whoes_request and sponsor_completion_approval:
+            if whoes_request == 'influencer':
+                # Update influencer-initiated request
+                request_obj = InfluencerAdRequest.query.get(completed_campaign_id)
+                if request_obj:
+                    request_obj.status_complete_sponsor = sponsor_completion_approval
+                    if sponsor_completion_approval == 'Approved':
+                        flash('Influencer submission approved. Payment can now be processed.', 'success')
+                    else:
+                        flash('Influencer submission rejected.', 'info')
+            elif whoes_request == 'sponsor':
+                # Update sponsor-initiated request
+                request_obj = SponsorRequest.query.get(completed_campaign_id)
+                if request_obj:
+                    request_obj.status_complete_sponsor = sponsor_completion_approval
+                    if sponsor_completion_approval == 'Approved':
+                        flash('Influencer submission approved. Payment can now be processed.', 'success')
+                    else:
+                        flash('Influencer submission rejected.', 'info')
+            
+            db.session.commit()
+    
+    # Get requests initiated by the sponsor with influencer and campaign details
+    sponsor_requests_data = db.session.query(
+        SponsorRequest, Campaign, Influencer
+    ).join(
+        Campaign, SponsorRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Influencer, SponsorRequest.influencer_id == Influencer.influencer_id
+    ).filter(
+        SponsorRequest.sponsor_id == sponsor_id,
+        SponsorRequest.influencer_call == 'Approve'  # Only requests accepted by influencers
+    ).all()
+    
+    # Get requests initiated by influencers with influencer and campaign details
+    influencer_requests_data = db.session.query(
+        InfluencerAdRequest, Campaign, Influencer
+    ).join(
+        Campaign, InfluencerAdRequest.campaign_id == Campaign.campaign_id
+    ).join(
+        Influencer, InfluencerAdRequest.influencer_id == Influencer.influencer_id
+    ).filter(
+        InfluencerAdRequest.sponsor_id == sponsor_id,
+        InfluencerAdRequest.sponsor_call == 'Approved'  # Only requests approved by the sponsor
+    ).all()
+    
+    return render_template(
+        'sponsor_assigned_campaign.html',
+        sponsor_requests=sponsor_requests_data,
+        influencer_requests=influencer_requests_data
+    )
+
+@sponsor_bp.route("/stats")
+def stats():
+    """Performance statistics page for sponsors"""
+    if 'sponsor_id' not in session:
+        flash('Please login to view your statistics.', 'warning')
+        return redirect(url_for('sponsor.login'))
+        
+    sponsor_id = session['sponsor_id']
+    sponsor = Sponsor.query.get(sponsor_id)
+    
+    # Get all campaigns by this sponsor
+    campaigns = Campaign.query.filter_by(sponsor_id=sponsor_id).all()
+    
+    # Count campaigns by status
+    total_campaigns = len(campaigns)
+    active_campaigns = sum(1 for c in campaigns if c.status == 'Active')
+    completed_campaigns = sum(1 for c in campaigns if c.status == 'Completed')
+    pending_campaigns = sum(1 for c in campaigns if c.status == 'Pending')
+    cancelled_campaigns = sum(1 for c in campaigns if c.status == 'Cancelled')
+    
+    # Get active partnership count
+    # Sponsor-initiated requests accepted by influencers
+    sponsor_request_count = db.session.query(db.func.count(SponsorRequest.sponsor_request_id)).filter(
+        SponsorRequest.sponsor_id == sponsor_id,
+        SponsorRequest.influencer_call == 'Approve'
+    ).scalar() or 0
+    
+    # Influencer-initiated requests approved by sponsor
+    influencer_request_count = db.session.query(db.func.count(InfluencerAdRequest.influencer_request_id)).filter(
+        InfluencerAdRequest.sponsor_id == sponsor_id,
+        InfluencerAdRequest.sponsor_call == 'Approved'
+    ).scalar() or 0
+    
+    total_influencers = sponsor_request_count + influencer_request_count
+    
+    # Calculate total spend (placeholder - would be more sophisticated in real app)
+    total_spent = 0
+    for campaign in campaigns:
+        if campaign.status == 'Completed':
+            # For completed campaigns, use the full budget
+            if campaign.budget:
+                # Handle if budget is a range like "1000-2000"
+                if '-' in campaign.budget:
+                    budget_parts = campaign.budget.split('-')
+                    try:
+                        # Use the higher end of the range
+                        total_spent += float(budget_parts[1].strip())
+                    except (IndexError, ValueError):
+                        pass
+                else:
+                    try:
+                        total_spent += float(campaign.budget)
+                    except ValueError:
+                        pass
+    
+    # Sample chart data (in a real app, this would be actual data)
+    campaign_months = ["Jan", "Feb", "Mar", "Apr", "May"]
+    campaign_counts = [1, 2, 1, 3, 2]  # Sample data
+    
+    # Generate status breakdown for pie chart
+    campaign_status = {
+        'labels': ['Active', 'Completed', 'Pending', 'Cancelled'],
+        'data': [active_campaigns, completed_campaigns, pending_campaigns, cancelled_campaigns]
+    }
+    
+    return render_template(
+        'sponsor_stats.html',
+        sponsor=sponsor,
+        total_campaigns=total_campaigns,
+        active_campaigns=active_campaigns,
+        completed_campaigns=completed_campaigns,
+        pending_campaigns=pending_campaigns,
+        cancelled_campaigns=cancelled_campaigns,
+        total_influencers=total_influencers,
+        total_spent=total_spent,
+        campaign_chart={
+            'labels': campaign_months,
+            'data': campaign_counts
+        },
+        campaign_status=campaign_status
+    )
+
+@sponsor_bp.route("/influencer_requests/<int:influencer_id>", methods=['GET', 'POST'])
+def influencer_requests(influencer_id):
+    """Send campaign requests to specific influencers"""
+    if 'sponsor_id' not in session:
+        flash('Please login to send requests to influencers.', 'warning')
+        return redirect(url_for('sponsor.login'))
+    
+    sponsor_id = session['sponsor_id']
+    sponsor = Sponsor.query.get(sponsor_id)
+    influencer = Influencer.query.get(influencer_id)
+    
+    if not influencer:
+        flash('Influencer not found.', 'danger')
+        return redirect(url_for('sponsor.find_influencer'))
+    
+    # Get campaigns owned by this sponsor
+    campaigns = Campaign.query.filter_by(sponsor_id=sponsor_id, status='Active').all()
+    
+    if request.method == 'POST':
+        campaign_id = request.form.get('campaign_id')
+        amount = request.form.get('amount')
+        message = request.form.get('message', '')
+        
+        if not campaign_id:
+            flash('Please select a campaign.', 'danger')
+            return redirect(url_for('sponsor.influencer_requests', influencer_id=influencer_id))
+        
+        # Check if a request already exists for this influencer and campaign
+        existing_request = SponsorRequest.query.filter_by(
+            sponsor_id=sponsor_id,
+            influencer_id=influencer_id,
+            campaign_id=campaign_id
+        ).first()
+        
+        if existing_request:
+            flash('You have already sent a request to this influencer for this campaign.', 'info')
+            return redirect(url_for('sponsor.find_influencer'))
+        
+        # Create new sponsor request
+        new_request = SponsorRequest(
+            sponsor_id=sponsor_id,
+            influencer_id=influencer_id,
+            campaign_id=campaign_id,
+            amount=amount,
+            message=message,
+            sponsor_call='Pending',  # Default status from sponsor's side
+            influencer_call='Pending',  # Default status from influencer's side
+            created_at=datetime.utcnow()
+        )
+        
+        db.session.add(new_request)
+        db.session.commit()
+        
+        flash('Request sent successfully to the influencer!', 'success')
+        return redirect(url_for('sponsor.find_influencer'))
+    
+    return render_template(
+        'sponsor_influencer_requests.html',
+        sponsor=sponsor,
+        influencer=influencer,
+        campaigns=campaigns
+    )
 
 # Function to check if file upload is allowed
 def allowed_file(filename):

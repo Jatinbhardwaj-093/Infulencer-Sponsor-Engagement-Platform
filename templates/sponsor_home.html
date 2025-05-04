@@ -1,91 +1,319 @@
 {% extends 'layout_sponsor.html' %}
 
-{% block title %}
-    Sponsor Home Page
+{% block title %}Sponsor Dashboard - InfluConnect{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='sponsor_home.css') }}">
+<style>
+    .stats-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    .table-container {
+        background-color: #fff;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .table-header {
+        background-color: #f8f9fc;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-header h5 {
+        margin-bottom: 0;
+        color: #2e86de;
+        font-weight: 600;
+    }
+
+    .table-responsive {
+        padding: 1rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: #444;
+        border-top: none;
+        background-color: rgba(46, 134, 222, 0.05);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge-status {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+    }
+
+    .badge-pending {
+        background-color: #f6c23e;
+        color: #fff;
+    }
+
+    .badge-approved {
+        background-color: #1cc88a;
+        color: #fff;
+    }
+
+    .badge-rejected {
+        background-color: #e74a3b;
+        color: #fff;
+    }
+
+    .btn-action {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 0.5rem;
+        margin-right: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .btn-approve {
+        background-color: #1cc88a;
+        border-color: #1cc88a;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background-color: #169b6b;
+        border-color: #169b6b;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-reject {
+        background-color: #e74a3b;
+        border-color: #e74a3b;
+        color: white;
+    }
+
+    .btn-reject:hover {
+        background-color: #be3e31;
+        border-color: #be3e31;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
 {% endblock %}
 
-{% block style %}
-    <link rel="stylesheet" href="static/sponsor_home.css">    
-{% endblock %}
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Sponsor Dashboard</h1>
+        <a href="{{ url_for('sponsor.create_campaign') }}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Create New Campaign
+        </a>
+    </div>
 
-{% block content %}
-    <div class="grid">
-        <div class="influencer_request">
-            <h1>Sent Requests</h1>
-            <table class="contain-table">
-                <thead>
-                <tr>
-                    <th scope="col">Influencer</th>
-                    <th scope="col">Campaign</th>
-                    <th scope="col">Message</th>
-
-                    <th scope="col">Budget</th>
-                    <th scope="col">Offer</th>
-                    <th scope="col">Status</th>
-                </tr>
-                </thead>
-                {% for sponsor_request,campaign,influencer in sponsor_requests %}
-                    
-                <tbody>
-                    <tr>
-                        <th scope="row">{{influencer.username}}</th>
-                        <td>{{campaign.campaign_name}}</td>
-                        <td>{{sponsor_request.message}}</td>
-                        <td>{{campaign.budget}}</td>
-                        <td>{{sponsor_request.amount}}</td>
-                        {% if sponsor_request.sponsor_status=='Approved' %}
-                            <td style="color: #008000">{{sponsor_request.sponsor_status}}</td>
-                        {% elif sponsor_request.sponsor_status=='Rejected' %}
-                            <td style="color: #ff0000;">{{sponsor_request.sponsor_status}}</td>
-                        {% else %}
-                            <td>{{sponsor_request.sponsor_status}}</td>
-                        {% endif %}
-                    </tr>
-                </tbody>
-                {% endfor %}
-            </table>
-
+    <!-- Content Row -->
+    <div class="row mb-4">
+        <!-- Active Campaigns Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Active Campaigns</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaigns|default(3) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-megaphone fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="sent_request">
-            <h1>Received Requests</h1>
-            <table class="contain-table">
-                <thead>
-                <tr>
-                    <th scope="col">Influencer</th>
-                    <th scope="col">Campaign</th>
-                    <th scope="col">Message</th>
-                    <th scope="col">Budget</th>
-                    <th scope="col">Ask</th>
-                    <th scope="col">Action</th>
-                </tr>
-                </thead>
-                {% for influencer_request,campaign,influencer in influencer_requests %}
-                    
-                <tbody>
-                    <tr>
-                        <th scope="row">{{influencer.username}}</th>
-                        <td>{{campaign.campaign_name}}</td>
-                        <td>{{influencer_request.message}}</td>
-                        <td>{{campaign.budget}}</td>
-                        <td>{{influencer_request.amount}}</td>
-                        <td>
-                        {% if influencer_request.sponsor_call == 'Approved' %}
-                            <p style="color: #008000">Accepted</p>
-                        {% elif influencer_request.sponsor_call == 'Rejected' %}
-                            <p style="color: #ff0000;">Rejected</p>
-                        {% else %}
-                            <form method="post">
-                                <button style="background-color: #b0ffb0; border: none;" type="submit" name="sponsor_call" value="Approved">Accept</button>
-                                <button style="background-color: #ff5252; border: none; "type="submit" name="sponsor_call" value="Rejected">Reject</button>
-                                <input type="hidden" name="influencer_request_id" value="{{influencer_request.influencer_request_id}}">
-                            </form>
-                        {% endif %}
-                        </td>
-                    </tr>
-                </tbody>
-                {% endfor %}
-            </table>
+
+        <!-- Partnered Influencers Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Partnered Influencers</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_influencers|default(12) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Reach Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Audience Reach</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_reach|default('1.8M') }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up-arrow fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Allocation Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Current Budget</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_budget|default('45,000') }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-currency-dollar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-{% endblock %}
 
+    <!-- Received Requests Table -->
+    <div class="table-container mb-4">
+        <div class="table-header">
+            <h5 class="mb-0">
+                <i class="bi bi-inbox-fill me-2"></i>
+                Received Requests
+            </h5>
+            <span class="badge bg-primary rounded-pill">{{ influencer_requests|length }}</span>
+        </div>
+        <div class="table-responsive p-3">
+            {% if influencer_requests %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Influencer</th>
+                        <th scope="col">Campaign</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Ask</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for influencer_request, campaign, influencer in influencer_requests %}
+                    <tr>
+                        <td class="fw-bold">{{ influencer.username }}</td>
+                        <td>{{ campaign.campaign_name }}</td>
+                        <td>{{ influencer_request.message }}</td>
+                        <td>${{ campaign.budget }}</td>
+                        <td>${{ influencer_request.amount }}</td>
+                        <td>
+                            {% if influencer_request.sponsor_call == 'Approved' %}
+                            <span class="badge badge-status badge-approved">Accepted</span>
+                            {% elif influencer_request.sponsor_call == 'Rejected' %}
+                            <span class="badge badge-status badge-rejected">Rejected</span>
+                            {% else %}
+                            <form method="post" class="d-flex">
+                                <button type="submit" class="btn btn-action btn-approve" name="sponsor_call"
+                                    value="Approved">
+                                    <i class="bi bi-check-lg me-1"></i>Accept
+                                </button>
+                                <button type="submit" class="btn btn-action btn-reject" name="sponsor_call"
+                                    value="Rejected">
+                                    <i class="bi bi-x-lg me-1"></i>Reject
+                                </button>
+                                <input type="hidden" name="influencer_request_id"
+                                    value="{{influencer_request.influencer_request_id}}">
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-inbox text-muted fa-3x mb-3"></i>
+                <p class="text-muted">No pending requests from influencers</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sent Requests Table -->
+    <div class="table-container">
+        <div class="table-header">
+            <h5 class="mb-0">
+                <i class="bi bi-send-fill me-2"></i>
+                Sent Requests
+            </h5>
+            <span class="badge bg-primary rounded-pill">{{ sponsor_requests|length }}</span>
+        </div>
+        <div class="table-responsive p-3">
+            {% if sponsor_requests %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Influencer</th>
+                        <th scope="col">Campaign</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Offer</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sponsor_request, campaign, influencer in sponsor_requests %}
+                    <tr>
+                        <td class="fw-bold">{{ influencer.username }}</td>
+                        <td>{{ campaign.campaign_name }}</td>
+                        <td>{{ sponsor_request.message }}</td>
+                        <td>${{ campaign.budget }}</td>
+                        <td>${{ sponsor_request.amount }}</td>
+                        <td>
+                            {% if sponsor_request.sponsor_status == 'Approved' %}
+                            <span class="badge badge-status badge-approved">Approved</span>
+                            {% elif sponsor_request.sponsor_status == 'Rejected' %}
+                            <span class="badge badge-status badge-rejected">Rejected</span>
+                            {% else %}
+                            <span class="badge badge-status badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-send text-muted fa-3x mb-3"></i>
+                <p class="text-muted">No requests sent to influencers</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

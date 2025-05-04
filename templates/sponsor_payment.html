@@ -1,52 +1,126 @@
 {% extends 'layout_sponsor.html' %}
 
+{% block title %}Payment - InfluConnect{% endblock %}
 
-{% block style  %}
+{% block page_styles %}
+<style>
+    .payment-container {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        padding: 2rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
 
-    <style>
-        .body{
-            background-color: #f0f8ff;
-            border: 2px solid #f0f8ff;
-            border-radius: 20px;
-            
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 50vh;
-            width: 20vw;
-            margin: auto;
-            gap: 10px;
-        }
-        h1{
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
+    .form-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
 
-        }
-    </style>
+    .form-header h4 {
+        color: #2e86de;
+        font-weight: 600;
+    }
+
+    .payment-form {
+        padding: 1rem;
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .submit-container {
+        display: flex;
+        justify-content: center;
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-payment {
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #2e86de 0%, #54a0ff 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 10px rgba(46, 134, 222, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-payment:hover {
+        background: linear-gradient(135deg, #1a68b3 0%, #3d8fea 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(46, 134, 222, 0.4);
+    }
+</style>
 {% endblock %}
-{% block title %}   
-    Payment
-{% endblock %}  
 
-{% block content %} 
-<form method="post">
-    <h1>Payment Portal</h1>
-    <div class="body">
-    <div class="mb-3">
-        <input class="form-control" type="text" placeholder="Enter Amount">
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Process Payment</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb bg-transparent m-0 p-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('sponsor.home') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('sponsor.assigned_campaign') }}">Active Partnerships</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Payment</li>
+            </ol>
+        </nav>
     </div>
-    <div class="mb-3">
-        <input class="form-control" type="text" placeholder="Debit/Credit Card Number">
-    </div>
-    <div class="mb-3">
-        <input class="form-control" type="text" placeholder="Enter CVV">
-    </div>
-    <div class="mb-3">
-        <input type="hidden" name="payment" value="Paid">
-    <button class="btn btn-lg btn-primary">Make Payment</button>
+
+    <div class="payment-container">
+        <div class="form-header">
+            <i class="bi bi-credit-card card-icon d-block"></i>
+            <h4>Payment Portal</h4>
+            <p class="text-muted">Complete your payment to the influencer</p>
+        </div>
+
+        <form method="post" class="payment-form">
+            <!-- CSRF Token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label for="amount" class="form-label">Payment Amount (USD)*</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" id="amount" name="amount" placeholder="500" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="card_number" class="form-label">Card Number*</label>
+                <input type="text" class="form-control" id="card_number" name="card_number"
+                    placeholder="1234 5678 9012 3456" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="expiry" class="form-label">Expiry Date*</label>
+                    <input type="text" class="form-control" id="expiry" name="expiry" placeholder="MM/YY" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="cvv" class="form-label">CVV*</label>
+                    <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" required>
+                </div>
+            </div>
+
+            <input type="hidden" name="payment" value="Paid">
+
+            <div class="submit-container">
+                <button type="submit" class="btn btn-payment">
+                    <i class="bi bi-lock me-2"></i>Secure Payment
+                </button>
+            </div>
+        </form>
     </div>
 </div>
-</form>
 {% endblock %}
