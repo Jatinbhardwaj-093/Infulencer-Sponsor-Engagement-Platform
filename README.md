@@ -134,11 +134,3 @@ influencer-engagement-platform/
 3. Commit your changes: `git commit -m 'Add some amazing feature'`
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-For support, email support@influconnect.com or open an issue in the GitHub repository.
